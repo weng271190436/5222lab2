@@ -6,6 +6,8 @@
 #include <linux/sched.h>
 #include <linux/kthread.h>
 
+#include <./calibrate_header.h>
+
 static char* mode = "calibrate";
 module_param(mode, charp, 0644);
 
