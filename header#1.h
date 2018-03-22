@@ -37,8 +37,6 @@
 #define SUBTASK3 2
 #define SUBTASK4 3
 
-void initialize();
-
 struct subtask {
 	struct hrtimer* timer;
 	struct task_struct* task_struct_pointer;
@@ -127,7 +125,9 @@ struct task1 first_task=
 	0 // execution time, calculate later
 };
 
-
+void initialize(void) {
+	task_set[0] = &first_task;
+}
 /*
 {
 	// Task 1
