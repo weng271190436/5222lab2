@@ -1,6 +1,6 @@
 /*
  *	Team members: Zimu Wang, Diqiu Zhou, Wei Weng
- *	
+ *
  *	The first set of tasks is manually calculated by Wei Weng
  *	It is used to test for easily schedulable tasks
  */
@@ -36,6 +36,8 @@
 #define SUBTASK2 1
 #define SUBTASK3 2
 #define SUBTASK4 3
+
+void initialize();
 
 struct subtask {
 	struct hrtimer* timer;
@@ -83,16 +85,16 @@ struct hrtimer hr_timer_2_3;
 // Third task
 struct hrtimer hr_timer_3_1;
 struct hrtimer hr_timer_3_2;
-struct hrtimer hr_timer_3_3; 
-struct hrtimer hr_timer_3_4; 
+struct hrtimer hr_timer_3_3;
+struct hrtimer hr_timer_3_4;
 
 // Task set
-void* task_set[TASK_COUNT];
-struct task1 task1=
+extern void* task_set[TASK_COUNT];
+struct task1 first_task=
 {
 	{
 		// Subtask 1
-		{		
+		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
 			(int)0,//last release time,assign in runtime
@@ -124,14 +126,15 @@ struct task1 task1=
 	SUBTASK_1_COUNT,
 	0 // execution time, calculate later
 };
-task_set=(void *)&task1;
+
+
 /*
 {
 	// Task 1
 	{
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_1_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
@@ -163,13 +166,13 @@ task_set=(void *)&task1;
 		SUBTASK_1_COUNT,
 		0 // execution time, calculate later
 	},
-	
+
 	// Task 2
 	{
 
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_2_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
@@ -222,7 +225,7 @@ task_set=(void *)&task1;
 
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_3_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
