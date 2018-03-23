@@ -48,8 +48,8 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 
 
 static void run_thread(struct subtask* task) {
-	hrtimer_init(&task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
-	&task->timer.function = &timer_expire;
+	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+	task->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
@@ -71,7 +71,7 @@ static void run_thread(struct subtask* task) {
 		}
 		// schedule next subtask
 		else if ((task->pos_in_task != parent_task->subtask_count - 1)) {
-			sturct subtask next_subtask = parent_task->subtasks[task->pos_in_task + 1];
+			struct subtask next_subtask = parent_task->subtasks[task->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
 			if (ktime_before(cur_time, next_wakeup)) {
