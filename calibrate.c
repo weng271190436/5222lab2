@@ -8,10 +8,16 @@
 
 #include "header_1.h"
 
+#define NUM_OF_CORES 4
+#define MIN_LOOP_ITERATIONS_COUNT 1000
+#define INCREMENTOR 15000
+
 static char* mode = "calibrate";
 module_param(mode, charp, 0644);
 
 void* task_set[TASK_COUNT];
+
+struct sched_param param;
 
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
@@ -21,9 +27,60 @@ void subtask_work(struct subtask* task) {
 	}
 }
 
-// TODO: parameter: list of subtasks on the same core
-void calibrate_core(void) {
-	// do nothing
+// Step 6
+// thread function for calibrate mode
+// parameter: core number which can be used to find
+// 		all subtasks assigned to this core
+static int calibrate_mode_threadfunc(int core_number) {
+	if (core_number < 0 || core_number > NUM_OF_CORES) return -1;
+	//set_current_state(TASK_INTERRUPTIBLE);
+	//schedule();
+
+	// After waking up
+	//printk(KERN_DEBUG "Core %d has just woken up.\n", core_number);
+
+	//TODO: sets its priority to the priority specified in its subtask
+	//	struct
+
+	// Binary search for the maximum number of loop iterations that can
+	// be run nwithout excedding the subtask's specified execution
+	// time
+	struct subtask * subtasks = subtasks_by_core[core_number];
+	int num_of_subtasks = (int) sizeof(subtasks)/sizeof(subtasks[0]);
+	int i;
+	for (i=0;i<num_of_subtasks;i++){
+		param.sched_priority=subtasks[i].priority;
+		sched_setscheduler(current,SCHED_FIFO,&param);
+		//schedule();
+
+		// Calibrate
+		int incrementor=INCREMENTOR;
+		int current_count=MIN_LOOP_ITERATIONS_COUNT;
+		ktime_t start_time;
+		ktime_t end_time;
+		int actual_execution_time;
+		int next;
+		while(incrementor>0){
+			next=current_count+incrementor;
+			start_time=ktime_get();
+			subtasks[i].loop_iterations_count=next;
+			subtask_work(&subtasks[i]);
+			end_time=ktime_get();
+			actual_execution_time=end_time-start_time;
+			while(actual_exection_time>subtasks[i].execution_time){
+				incrementor/=2;
+				if(incrementor==0)break;
+				next=current_count+incrementor;
+				start_time=ktime_get();
+				subtasks[i].loop_iterations_count=next;
+				subtask_work(&subtasks[i]);
+				end_time=ktime_get();
+				actual_execution_time=end_time-start_time;
+			}
+			current_count+=incrementor;
+		}
+
+	}
 }
 
 struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
