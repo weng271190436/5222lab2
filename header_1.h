@@ -118,6 +118,7 @@ struct task first_task=
 void initialize(void) {
 	task_set[0] = &first_task;
 }
+
 /*
 {
 	// Task 1
