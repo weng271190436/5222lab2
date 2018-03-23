@@ -9,7 +9,14 @@
 #include "header_1.h"
 
 static char* mode = "calibrate";
+
+static char* run_mode = "calibrate";
+
+struct sched_param param;
+
 module_param(mode, charp, 0644);
+
+
 
 void* task_set[TASK_COUNT];
 
@@ -82,18 +89,67 @@ static void run_thread(struct subtask* task) {
 	}
 }
 
+static int general_init(void) {
+	printk(KERN_DEBUG "Mode is %s\n", mode);
+	// initialize();
+	if (strcmp(run_mode, "run")) {
+		int ret = run_init();
+	}
+	else {
+		int ret = calibrate_init();
+	}
+	return ret;
+}
+
+static int run_init(void) {
+	printk(KERN_DEBUG "run inits.\n");
+	int i, j;
+	struct task* cur_mother_task;
+	struct subtask cur_subtask;
+	for (i = 0; i < TASK_COUNT; i++) {
+		cur_mother_task = task_set[i];
+		for (j = 0; j < cur_mother_task->subtask_count; j++) {
+				cur_subtask = cur_mother_task->subtasks[j];
+				cur_subtask.task_struct_pointer = kthread_create(run_thread, cur_subtask, cur_subtask.name);
+				kthread_bind(cur_subtask.task_struct_pointer， cur_subtask.core);
+				param.sched_priority = task1.priority;
+				sched_setscheduler(task1, SCHED_FIFO, &param);
+		}
+	}
+	// waking up the first one;
+	for (i = 0; i < TASK_COUNT; i++) {
+		wake_up_process(task_set[i]->subtasks[0].task_struct_pointer);
+	}
+	return 0;
+}
+
+static int run_exit(void) {
+	printk(KERN_DEBUG "run exits.\n");
+	return 0;
+}
 
 static int calibrate_init(void){
-	printk(KERN_INFO "Mode is %s\n", mode);
+	printk(KERN_DEBUG "Calibrate inits.\n");
 	return 0;
 }
 
 static void calibrate_exit(void){
-	printk(KERN_INFO "Calibrate exits.\n");
+	printk(KERN_DEBUG "Calibrate exits.\n");
+	return 0;
 }
 
-module_init(calibrate_init);
-module_exit(calibrate_exit);
+static int general_exit(void) {
+	if (strcmp(run_mode, "run")) {
+		int ret = run_init();
+	}
+	else {
+		int ret = calibrate_init();
+	}
+	return ret;
+}
+
+module_init(general_init);
+module_exit(general_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Diqiu Zhou, Zimu Wang, Wei Weng");
