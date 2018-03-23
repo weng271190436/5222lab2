@@ -92,11 +92,12 @@ static void run_thread(struct subtask* task) {
 static int general_init(void) {
 	printk(KERN_DEBUG "Mode is %s\n", mode);
 	// initialize();
+	int ret;
 	if (strcmp(run_mode, "run")) {
-		int ret = run_init();
+		ret = run_init();
 	}
 	else {
-		int ret = calibrate_init();
+		ret = calibrate_init();
 	}
 	return ret;
 }
@@ -123,7 +124,7 @@ static int run_init(void) {
 	return 0;
 }
 
-static int run_exit(void) {
+static void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
 	return 0;
 }
@@ -138,7 +139,7 @@ static void calibrate_exit(void){
 	return 0;
 }
 
-static int general_exit(void) {
+static void general_exit(void) {
 	if (strcmp(run_mode, "run")) {
 		int ret = run_init();
 	}
