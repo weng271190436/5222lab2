@@ -97,7 +97,7 @@ int run_init(void) {
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = cur_mother_task->subtasks[j];
 				cur_subtask.task_struct_pointer = kthread_create(run_thread, cur_subtask, cur_subtask.name);
-				kthread_bind(cur_subtask.task_struct_pointer， cur_subtask.core);
+				kthread_bind(cur_subtask.task_struct_pointer, cur_subtask.core);
 				param.sched_priority = task1.priority;
 				sched_setscheduler(task1, SCHED_FIFO, &param);
 		}
