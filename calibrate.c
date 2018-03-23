@@ -6,12 +6,13 @@
 #include <linux/sched.h>
 #include <linux/kthread.h>
 
-#include <./calibrate_header.h>
+#include "header_1.h"
 
 static char* mode = "calibrate";
 module_param(mode, charp, 0644);
 
-/*
+void* task_set[TASK_COUNT];
+
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
 	int i;
@@ -25,18 +26,18 @@ void calibrate_core(void) {
 	// do nothing
 }
 
-struct subtask * subtask_lookup(struct hrtimer* timer) {
-	return container_of(timer, struct subtask, timer);
+struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
+	return container_of(&hr_timer, struct subtask, timer);
 }
-
-void*
 
 enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 	struct subtask * task = subtask_lookup(timer);
-	wake_up_process(task);
+	if (task->task_struct_pointer != NULL) {
+		wake_up_process(task->task_struct_pointer);
+	}
 	return HRTIMER_RESTART;
 }
-
+/*
 static run_thread(struct subtask* task) {
 	hrtimer_init(&task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	&task->timer.function = &timer_expire;
