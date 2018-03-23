@@ -30,6 +30,10 @@ struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
 	return container_of(&hr_timer, struct subtask, timer);
 }
 
+struct task * get_parent_task(struct subtask * task) {
+	return container_of(task - sizeof(struct subtask) * task->pos_in_task, struct task, subtasks);
+}
+
 enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 	struct subtask * task = subtask_lookup(timer);
 	if (task->task_struct_pointer != NULL) {
@@ -37,6 +41,7 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 	}
 	return HRTIMER_RESTART;
 }
+
 /*
 static run_thread(struct subtask* task) {
 	hrtimer_init(&task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
@@ -52,6 +57,12 @@ static run_thread(struct subtask* task) {
 		task->last_release_time = ktime_get();
 
 		subtask_work(task);
+
+		if (task->pos_in_task == 0) {
+			ktime_t period;
+			struct task* parent_task = get_parent_task(task);
+			period = ktime_set(0, parent_task->period);
+		}
 	}
 }
 */
