@@ -49,27 +49,14 @@ struct subtask {
 	int relative_deadline;
 	int priority;
 	int task_index;
+	int pos_in_task; // position in the bigger task
 };
 
-struct task1 {
-	struct subtask subtasks[SUBTASK_1_COUNT];
+struct task {
 	int period;
 	int subtask_count;
 	int execution_time;
-};
-
-struct task2 {
-	struct subtask subtasks[SUBTASK_2_COUNT];
-	int period;
-	int subtask_count;
-	int execution_time;
-};
-
-struct task3 {
-	struct subtask subtasks[SUBTASK_3_COUNT];
-	int period;
-	int subtask_count;
-	int execution_time;
+	struct subtask subtasks[];
 };
 
 // Declare and initialize hrtimers
@@ -88,8 +75,11 @@ struct hrtimer hr_timer_3_4;
 
 // Task set
 extern void* task_set[TASK_COUNT];
-struct task1 first_task=
+struct task first_task=
 {
+	TASK1_PERIOD,
+	SUBTASK_1_COUNT,
+	0, // execution time, calculate later
 	{
 		// Subtask 1
 		{
@@ -119,10 +109,7 @@ struct task1 first_task=
 			0,//priority, calculate later
 			TASK1_INDEX//task index
 		}
-	},
-	TASK1_PERIOD,
-	SUBTASK_1_COUNT,
-	0 // execution time, calculate later
+	}
 };
 
 void initialize(void) {

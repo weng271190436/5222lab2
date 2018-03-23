@@ -11,6 +11,7 @@
 static char* mode = "calibrate";
 module_param(mode, charp, 0644);
 
+/*
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
 	int i;
@@ -28,6 +29,31 @@ struct subtask * subtask_lookup(struct hrtimer* timer) {
 	return container_of(timer, struct subtask, timer);
 }
 
+void*
+
+enum hrtimer_restart timer_expire(struct hrtimer* timer) {
+	struct subtask * task = subtask_lookup(timer);
+	wake_up_process(task);
+	return HRTIMER_RESTART;
+}
+
+static run_thread(struct subtask* task) {
+	hrtimer_init(&task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+	&task->timer.function = &timer_expire;
+	while (!kthread_should_stop()) {
+		set_current_state(TASK_INTERRUPTIBLE);
+		schedule();
+
+		if (kthread_should_stop()) {
+			break;
+		}
+
+		task->last_release_time = ktime_get();
+
+		subtask_work(task);
+	}
+}
+*/
 
 static int calibrate_init(void){
 	printk(KERN_INFO "Mode is %s\n", mode);
