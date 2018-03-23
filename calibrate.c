@@ -46,8 +46,8 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 	return HRTIMER_RESTART;
 }
 
-/*
-static run_thread(struct subtask* task) {
+
+static void run_thread(struct subtask* task) {
 	hrtimer_init(&task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	&task->timer.function = &timer_expire;
 	while (!kthread_should_stop()) {
@@ -62,14 +62,30 @@ static run_thread(struct subtask* task) {
 
 		subtask_work(task);
 
+		struct task* parent_task = get_parent_task(task);
+		ktime_t period;
+		period = ktime_set(0, parent_task->period);
+		// schedule next wakeup
 		if (task->pos_in_task == 0) {
-			ktime_t period;
-			struct task* parent_task = get_parent_task(task);
-			period = ktime_set(0, parent_task->period);
+			hrtimer_forward(task->timer, task->last_release_time, period);
+		}
+		// schedule next subtask
+		else if ((task->pos_in_task != parent_task->subtask_count - 1)) {
+			sturct subtask next_subtask = parent_task->subtasks[task->pos_in_task + 1];
+			ktime_t cur_time = ktime_get();
+			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
+			if (ktime_before(cur_time, next_wakeup)) {
+					// schedule
+					hrtimer_forward(next_subtask.timer, next_subtask.last_release_time, period);
+			}
+			else {
+					// wake up
+					wake_up_process(next_subtask.task_struct_pointer);
+			}
 		}
 	}
 }
-*/
+
 
 static int calibrate_init(void){
 	printk(KERN_INFO "Mode is %s\n", mode);
