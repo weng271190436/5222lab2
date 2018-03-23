@@ -161,13 +161,14 @@ int getMin(int param[4]){
 struct temp{
 	int index;
 	int ddl;
-}
+}；
+
 int mark;
 
 int comparator(const void *p, const void *q) 
 {
-    int l = ((struct Student *)p)->ddl;
-    int r = ((struct Student *)q)->ddl; 
+    int l = ((struct temp *)p)->ddl;
+    int r = ((struct temp *)q)->ddl; 
     return (l - r);
 }
 
@@ -176,7 +177,7 @@ void initialize(void) {
 	task_set[0] = &first_task;
 	//calculate core
 	int i = 0;
-	int util[4] = [0,0,0,0];
+	int util[4] = {0,0,0,0};
 	while(i < first_task.subtask_count){
 		int core = getMin(util);
 		if (core != 4){
@@ -188,35 +189,37 @@ void initialize(void) {
 		}
 		//calculate deadline
 		first_task.subtasks[i].relative_deadline = first_task.subtasks[i].cumulative_execution_time * TASK1_PERIOD / first_task.subtasks[i].execution_time;
-		i++;
+		i = i + 1;
 	}
-	int max = 0
+	int max = 0;
+	int j = 0;
+	int k = 0;
+	int count[4] = {0,0,0,0};
 	//calculate priority
-	for (int j = 0; j < first_task.subtask_count; j++){
-		int count = [0,0,0,0]
-		if(first_task.subtasks[i].core != 4){
-			count[first_task.subtasks[i].core]+=1;
+	for (j = 0; j < first_task.subtask_count; j = j + 1){
+		if(first_task.subtasks[j].core != 4){
+			count[first_task.subtasks[j].core]+=1;
 		}
-		for(int k = 0; k < 4; k++){
+		for(k = 0; k < 4; k++){
 			if(max < count[k]){
 				max = count[k];
 			}
 		}
 	}
 	struct temp temp_list[4][max];
-	count = [0,0,0,0]
-	for (int j = 0; j < first_task.subtask_count; j++){
+	memcpy(count, {0,0,0,0}, 4*sizeof(count[0]));
+	for (j = 0; j < first_task.subtask_count; j = j + 1){
                 if(first_task.subtasks[i].core != 4){
                      	temp_list[first_task.subtasks[i].core][count[first_task.subtasks[i].core]] = {j, first_task.subtasks[i].relative_deadline}
-			count[first_task.subtasks[i].core]++;
+			count[first_task.subtasks[i.]core]++;
                 }
         }
-	for (int j = 0; j < 4; j++){
-		int size = sizeof(temp_list[j] / sizeof(temp_list[j][0]);
+	for (j = 0; j < 4; j++){
+		int size = sizeof(temp_list[j]) / sizeof(temp_list[j][0]);
         	qsort((void*)temp_list[j], size, sizeof(temp_list[j][0]), comparator);
 	}
-	for (int j = 0; j < 4; j++){
-		for (int k = 0; k < max; k++){
+	for (j = 0; j < 4; j++){
+		for (k = 0; k < max; k++){
 			if(temp_list[j][k] != NULL){
 				first_task.subtasks[temp_list[j][k].index].priority = max-k+1;
 			}
