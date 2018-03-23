@@ -40,9 +40,13 @@
 #define SUBTASK3 2
 #define SUBTASK4 3
 
+// "task1_subtask1"
+#define NAME_BUFF 15
+
 struct subtask {
 	struct hrtimer* timer;
 	struct task_struct* task_struct_pointer;
+	char name[NAME_BUFF];
 	ktime_t last_release_time;
 	int loop_iterations_count;
 	int cumulative_execution_time;
@@ -78,7 +82,7 @@ struct hrtimer hr_timer_3_3;
 struct hrtimer hr_timer_3_4;
 
 // Task set
-extern void* task_set[TASK_COUNT];
+extern struct task* task_set[TASK_COUNT];
 struct task first_task=
 {
 	TASK1_PERIOD,
@@ -89,6 +93,7 @@ struct task first_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			"task1_subtask1", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_1_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
@@ -104,6 +109,7 @@ struct task first_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			"task1_subtask2", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_2_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
