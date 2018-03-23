@@ -102,7 +102,7 @@ static int general_init(void) {
 	return ret;
 }
 
-static int run_init(void) {
+int run_init(void) {
 	printk(KERN_DEBUG "run inits.\n");
 	int i, j;
 	struct task* cur_mother_task;
@@ -124,17 +124,17 @@ static int run_init(void) {
 	return 0;
 }
 
-static void run_exit(void) {
+void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
 	return 0;
 }
 
-static int calibrate_init(void){
+int calibrate_init(void){
 	printk(KERN_DEBUG "Calibrate inits.\n");
 	return 0;
 }
 
-static void calibrate_exit(void){
+void calibrate_exit(void){
 	printk(KERN_DEBUG "Calibrate exits.\n");
 	return 0;
 }
