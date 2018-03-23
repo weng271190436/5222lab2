@@ -31,11 +31,7 @@ struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
 }
 
 struct task * get_parent_task(struct subtask * task) {
-	return container_of(
-			(struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task),
-			struct task,
-			subtasks[0],
-	);
+	return container_of((struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task), struct task, subtasks[0]);
 }
 
 enum hrtimer_restart timer_expire(struct hrtimer* timer) {
