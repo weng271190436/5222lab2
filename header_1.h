@@ -10,6 +10,7 @@
 
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
+#include <stdlib.h>
 
 #define TASK_COUNT 3
 #define SUBTASK_1_COUNT 2
@@ -161,9 +162,8 @@ int getMin(int param[4]){
 struct temp{
 	int index;
 	int ddl;
-}；
+};
 
-int mark;
 
 int comparator(const void *p, const void *q) 
 {
@@ -173,7 +173,7 @@ int comparator(const void *p, const void *q)
 }
 
 
-void initialize(void) {
+struct temp[] initialize(void) {
 	task_set[0] = &first_task;
 	//calculate core
 	int i = 0;
@@ -206,12 +206,15 @@ void initialize(void) {
 			}
 		}
 	}
+	count[0] = 0;
+	count[1] = 0;
+	count[2] = 0;
+	count[3] = 0;
 	struct temp temp_list[4][max];
-	memcpy(count, {0,0,0,0}, 4*sizeof(count[0]));
 	for (j = 0; j < first_task.subtask_count; j = j + 1){
-                if(first_task.subtasks[i].core != 4){
-                     	temp_list[first_task.subtasks[i].core][count[first_task.subtasks[i].core]] = {j, first_task.subtasks[i].relative_deadline}
-			count[first_task.subtasks[i.]core]++;
+                if(first_task.subtasks[j].core != 4){
+                     	temp_list[first_task.subtasks[j].core][count[first_task.subtasks[j].core]] = {j, first_task.subtasks[i].relative_deadline}
+			count[first_task.subtasks[j].core] += 1;
                 }
         }
 	for (j = 0; j < 4; j++){
@@ -219,16 +222,13 @@ void initialize(void) {
         	qsort((void*)temp_list[j], size, sizeof(temp_list[j][0]), comparator);
 	}
 	for (j = 0; j < 4; j++){
-		for (k = 0; k < max; k++){
-			if(temp_list[j][k] != NULL){
-				first_task.subtasks[temp_list[j][k].index].priority = max-k+1;
-			}
+		for (k = 0; k < count[j]; k++){
+			first_task.subtasks[temp_list[j][k].index].priority = max-k+1;
 		}
 	}
-	mark = max;
+	return temp_list;
 }
 
-struct temp subtask_by_core[4][mark] = temp_list;
 
 /*
 {
