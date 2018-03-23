@@ -140,11 +140,12 @@ static void calibrate_exit(void){
 }
 
 static void general_exit(void) {
+	int ret;
 	if (strcmp(run_mode, "run")) {
-		int ret = run_init();
+		ret = run_init();
 	}
 	else {
-		int ret = calibrate_init();
+		ret = calibrate_init();
 	}
 	return ret;
 }
