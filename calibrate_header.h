@@ -124,7 +124,7 @@ struct task1 task1=
 	SUBTASK_1_COUNT,
 	0 // execution time, calculate later
 };
-task_set=(void *)&task1;
+task_set=(void **)&task1;
 /*
 {
 	// Task 1
