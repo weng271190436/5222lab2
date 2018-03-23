@@ -126,7 +126,6 @@ int run_init(void) {
 
 void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
-	return 0;
 }
 
 int calibrate_init(void){
@@ -136,16 +135,14 @@ int calibrate_init(void){
 
 void calibrate_exit(void){
 	printk(KERN_DEBUG "Calibrate exits.\n");
-	return 0;
 }
 
 static void general_exit(void) {
-	int ret;
 	if (strcmp(run_mode, "run")) {
-		ret = run_init();
+		run_exit();
 	}
 	else {
-		ret = calibrate_init();
+		calibrate_exit();
 	}
 	return ret;
 }
