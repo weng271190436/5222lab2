@@ -16,9 +16,7 @@ struct sched_param param;
 
 module_param(mode, charp, 0644);
 
-
-
-void* task_set[TASK_COUNT];
+struct task* task_set[TASK_COUNT];
 
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
@@ -89,19 +87,6 @@ static void run_thread(struct subtask* task) {
 	}
 }
 
-static int general_init(void) {
-	printk(KERN_DEBUG "Mode is %s\n", mode);
-	// initialize();
-	int ret;
-	if (strcmp(run_mode, "run")) {
-		ret = run_init();
-	}
-	else {
-		ret = calibrate_init();
-	}
-	return ret;
-}
-
 int run_init(void) {
 	printk(KERN_DEBUG "run inits.\n");
 	int i, j;
@@ -137,6 +122,19 @@ void calibrate_exit(void){
 	printk(KERN_DEBUG "Calibrate exits.\n");
 }
 
+static int general_init(void) {
+	printk(KERN_DEBUG "Mode is %s\n", mode);
+	// initialize();
+	int ret;
+	if (strcmp(run_mode, "run")) {
+		ret = run_init();
+	}
+	else {
+		ret = calibrate_init();
+	}
+	return ret;
+}
+
 static void general_exit(void) {
 	if (strcmp(run_mode, "run")) {
 		run_exit();
@@ -144,7 +142,6 @@ static void general_exit(void) {
 	else {
 		calibrate_exit();
 	}
-	return ret;
 }
 
 module_init(general_init);
