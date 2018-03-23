@@ -1,6 +1,9 @@
+#pragma once
+#ifndef HEADER_1_H
+#define HEADER_1_H
 /*
  *	Team members: Zimu Wang, Diqiu Zhou, Wei Weng
- *	
+ *
  *	The first set of tasks is manually calculated by Wei Weng
  *	It is used to test for easily schedulable tasks
  */
@@ -49,27 +52,14 @@ struct subtask {
 	int relative_deadline;
 	int priority;
 	int task_index;
+	int pos_in_task; // position in the bigger task
 };
 
-struct task1 {
-	struct subtask subtasks[SUBTASK_1_COUNT];
+struct task {
 	int period;
 	int subtask_count;
 	int execution_time;
-};
-
-struct task2 {
-	struct subtask subtasks[SUBTASK_2_COUNT];
-	int period;
-	int subtask_count;
-	int execution_time;
-};
-
-struct task3 {
-	struct subtask subtasks[SUBTASK_3_COUNT];
-	int period;
-	int subtask_count;
-	int execution_time;
+	struct subtask subtasks[];
 };
 
 // Declare and initialize hrtimers
@@ -83,16 +73,19 @@ struct hrtimer hr_timer_2_3;
 // Third task
 struct hrtimer hr_timer_3_1;
 struct hrtimer hr_timer_3_2;
-struct hrtimer hr_timer_3_3; 
-struct hrtimer hr_timer_3_4; 
+struct hrtimer hr_timer_3_3;
+struct hrtimer hr_timer_3_4;
 
 // Task set
-void* task_set[TASK_COUNT];
-struct task1 task1=
+extern void* task_set[TASK_COUNT];
+struct task first_task=
 {
+	TASK1_PERIOD,
+	SUBTASK_1_COUNT,
+	0, // execution time, calculate later
 	{
 		// Subtask 1
-		{		
+		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
 			(int)0,//last release time,assign in runtime
@@ -119,19 +112,20 @@ struct task1 task1=
 			0,//priority, calculate later
 			TASK1_INDEX//task index
 		}
-	},
-	TASK1_PERIOD,
-	SUBTASK_1_COUNT,
-	0 // execution time, calculate later
+	}
 };
-task_set=(void **)&task1;
+
+void initialize(void) {
+	task_set[0] = &first_task;
+}
+
 /*
 {
 	// Task 1
 	{
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_1_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
@@ -163,13 +157,13 @@ task_set=(void **)&task1;
 		SUBTASK_1_COUNT,
 		0 // execution time, calculate later
 	},
-	
+
 	// Task 2
 	{
 
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_2_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
@@ -222,7 +216,7 @@ task_set=(void **)&task1;
 
 		{
 			// Subtask 1
-			{		
+			{
 				hr_timer_3_1,//hrtimer
 				NULL,//task_struct pointer
 				0,//last release time,assign in runtime
@@ -379,3 +373,4 @@ task_set[TASK2_INDEX].subtasks[SUBTASK3]=
 	TASK2_INDEX//task index
 };
 */
+#endif
