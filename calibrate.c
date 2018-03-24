@@ -18,6 +18,8 @@ module_param(mode, charp, 0644);
 
 struct task* task_set[TASK_COUNT];
 
+struct core* core_list[CPU_COUNT];
+
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
 	int i;
