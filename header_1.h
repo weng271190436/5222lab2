@@ -10,6 +10,9 @@
 
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
+#include <linux/sort.h>
+#include <linux/slab.h>
+
 
 #define TASK_COUNT 3
 #define SUBTASK_COUNT 9
@@ -72,7 +75,7 @@ struct task {
 struct core {
 	int subtask_count;
 	struct subtask subtasks[];
-}
+};
 
 extern struct core* core_list[CPU_COUNT];
 
@@ -135,8 +138,8 @@ struct task first_task=
 // 1 means right goes first
 // 0 means equivalent
 static int utilization_comparator(const void* lhs, const void* rhs) {
-	struct subtask* left = (struct subtask*)(lhs);
-	struct subtask* right = (struct subtask*)(rhs);
+	struct subtask* left = *(struct subtask**)(lhs);
+	struct subtask* right = *(struct subtask**)(rhs);
 	if (left->utilization > right->utilization) {
 		return -1;
 	}
@@ -151,8 +154,8 @@ static int utilization_comparator(const void* lhs, const void* rhs) {
 // sort in decreasing relative deadline
 // a.k.a. increasing priority
 static int relative_deadline_comparator(const void* lhs, const void* rhs) {
-	struct subtask left = (struct subtask)(lhs);
-	struct subtask right = (struct subtask)(rhs);
+	struct subtask left = *(struct subtask*)(lhs);
+	struct subtask right = *(struct subtask*)(rhs);
 	if (left.relative_deadline > right.relative_deadline) {
 		return -1;
 	}
@@ -187,15 +190,15 @@ void initialize(void) {
 				cur_subtask = cur_task->subtasks[j];
 				// add to total
 				task_execution_time += cur_subtask->execution_time;
-				cur_subtask.cumulative_execution_time = task_execution_time;
+				cur_subtask->cumulative_execution_time = task_execution_time;
 				subtask_list[count] = cur_subtask;
 			}
 			cur_task->execution_time = task_execution_time;
 			// assign relative deadline
 			for (j = 0; j < cur_task->subtask_count; j++) {
 				cur_subtask = cur_task->subtasks[j];
-				cur_subtask.relative_deadline =
-					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->task_execution_time;
+				cur_subtask->relative_deadline =
+					cur_subtask->cumulative_execution_time * cur_task->period / cur_task->task_execution_time;
 			}
 	}
 	// sort in decreasing order
@@ -224,7 +227,7 @@ void initialize(void) {
 	// build a struct core for each core
 	// with a list of subtasks
 	for (i = 0; i < CPU_COUNT; i++) {
-		struct core* cur_core = malloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i]);
+		struct core* cur_core = kmalloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i], GFP_KERNEL);
 		cur_core->subtask_count = cpu_count[i];
 		int count = 0;
 		for (j = 0; j < SUBTASK_COUNT; j++) {
