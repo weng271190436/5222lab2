@@ -125,6 +125,136 @@ struct task first_task=
 	}
 };
 
+struct task second_task=
+{
+	TASK2_PERIOD,
+	SUBTASK_2_COUNT,
+	0, // execution time, calculate later
+	{
+		// Subtask 1
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task2_subtask1", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*TWO_1_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			TWO_1_EXECUTION_TIME,//execution time
+			TWO_1_EXECUTION_TIME/(float)TASK2_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK2_INDEX,//task index
+			0
+		},
+		// Subtask 2
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task2_subtask2", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*TWO_2_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			TWO_2_EXECUTION_TIME,//execution time
+			TWO_2_EXECUTION_TIME/(float)TASK2_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK2_INDEX,//task index
+			0
+		},
+		// Subtask 3
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task2_subtask3", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*TWO_3_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			TWO_3_EXECUTION_TIME,//execution time
+			TWO_3_EXECUTION_TIME/(float)TASK2_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK2_INDEX,//task index
+			0
+		}
+	}
+};
+
+struct task third_task=
+{
+	TASK3_PERIOD,
+	SUBTASK_3_COUNT,
+	0, // execution time, calculate later
+	{
+		// Subtask 1
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task3_subtask1", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*THREE_1_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			THREE_1_EXECUTION_TIME,//execution time
+			THREE_1_EXECUTION_TIME/(float)TASK3_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK3_INDEX,//task index
+			0
+		},
+		// Subtask 2
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task3_subtask2", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*THREE_2_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			THREE_2_EXECUTION_TIME,//execution time
+			THREE_2_EXECUTION_TIME/(float)TASK3_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK3_INDEX,//task index
+			0
+		},
+		// Subtask 3
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task3_subtask3", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*THREE_3_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			THREE_3_EXECUTION_TIME,//execution time
+			THREE_3_EXECUTION_TIME/(float)TASK3_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK3_INDEX,//task index
+			0
+		},
+		// Subtask 4
+		{
+			NULL,//hrtimer
+			NULL,//task_struct pointer
+			"task3_subtask4", // name
+			(int)0,//last release time,assign in runtime
+			NUM_ITERS_PER_MS*THREE_4_EXECUTION_TIME,//loop iterations count
+			0,//cumulative execution time,calculate later
+			THREE_4_EXECUTION_TIME,//execution time
+			THREE_4_EXECUTION_TIME/(float)TASK3_PERIOD,//utilization
+			0,//core, calculate later
+			0,//relative deadline, calculate later
+			0,//priority, calculate later
+			TASK3_INDEX,//task index
+			0
+		}
+	}
+};
+
 int getMin(int param[4]){
 	int res;
         if(param[0] <= param[1]){
