@@ -191,7 +191,7 @@ void initialize(void) {
 				// add to total
 				task_execution_time += cur_subtask.execution_time;
 				cur_subtask.cumulative_execution_time = task_execution_time;
-				subtask_list[count] = cur_subtask;
+				subtask_list[count] = &cur_subtask;
 			}
 			cur_task->execution_time = task_execution_time;
 			// assign relative deadline
@@ -207,7 +207,7 @@ void initialize(void) {
 	// assign cpu cores
 	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
 	for (i = 0; i < SUBTASK_COUNT; i++) {
-		cur_subtask = subtask_list[i];
+		cur_subtask = *subtask_list[i];
 		for (j = 0; j < CPU_COUNT; j++) {
 			// assign to the first available one
 			if (cpu_load[j] + cur_subtask.utilization < 1) {
