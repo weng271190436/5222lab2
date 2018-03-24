@@ -10,6 +10,7 @@
 
 #include <linux/hrtimer.h>
 #include <linux/ktime.h>
+#include <linux/sort.h>
 
 #define TASK_COUNT 3
 #define SUBTASK_1_COUNT 2
@@ -40,9 +41,13 @@
 #define SUBTASK3 2
 #define SUBTASK4 3
 
+// "task1_subtask1"
+#define NAME_BUFF 15
+
 struct subtask {
 	struct hrtimer* timer;
 	struct task_struct* task_struct_pointer;
+	char name[NAME_BUFF];
 	ktime_t last_release_time;
 	int loop_iterations_count;
 	int cumulative_execution_time;
@@ -53,6 +58,7 @@ struct subtask {
 	int priority;
 	int task_index;
 	int pos_in_task; // position in the bigger task
+	int schedule;
 };
 
 struct task {
@@ -77,7 +83,7 @@ struct hrtimer hr_timer_3_3;
 struct hrtimer hr_timer_3_4;
 
 // Task set
-extern void* task_set[TASK_COUNT];
+extern struct task* task_set[TASK_COUNT];
 struct task first_task=
 {
 	TASK1_PERIOD,
@@ -88,6 +94,7 @@ struct task first_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			"task1_subtask1", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_1_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
@@ -96,12 +103,14 @@ struct task first_task=
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
-			TASK1_INDEX//task index
+			TASK1_INDEX,//task index
+			0
 		},
 		// Subtask 2
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			"task1_subtask2", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_2_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
@@ -110,14 +119,117 @@ struct task first_task=
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
-			TASK1_INDEX//task index
+			TASK1_INDEX,//task index
+			0
 		}
 	}
 };
 
-void initialize(void) {
-	task_set[0] = &first_task;
+int getMin(int param[4]){
+	int res;
+        if(param[0] <= param[1]){
+                if(param[0] <= param[2]){
+                        if(param[0] <= param[3]){               	
+				res = 0;
+                        }else{
+                                res = 3;
+                        }
+                }else if (param[2] <= param[3]){
+                        res = 2;
+                }else{
+                        res = 3;
+                }
+        }else{
+                 if(param[1] <= param[2]){
+                        if(param[1] <= param[3]){
+                                res = 1;
+                        }else{
+                                res = 3;
+                        }
+                }else if (param[2] <= param[3]){
+                        res = 2;
+                }else{
+                        res = 3;
+                }
+        }
+	if(param[res] >= 100){
+		return 4;
+	}else{
+		return res;
+	}
 }
+
+struct temp{
+	int index;
+	int ddl;
+};
+
+
+static int comparator(const void *p, const void *q) 
+{
+    int l = ((struct temp *)p)->ddl;
+    int r = ((struct temp *)q)->ddl; 
+    return (l - r);
+}
+
+
+struct temp* initialize(void) {
+	task_set[0] = &first_task;
+	//calculate core
+	int i = 0;
+	int util[4] = {0,0,0,0};
+	while(i < first_task.subtask_count){
+		int core = getMin(util);
+		if (core != 4){
+			first_task.subtasks[i].core = core;
+                	util[core] += first_task.subtasks[i].utilization;
+		}else{
+			first_task.subtasks[i].core = 4;
+			first_task.subtasks[i].schedule = 1;
+		}
+		//calculate deadline
+		first_task.subtasks[i].relative_deadline = first_task.subtasks[i].cumulative_execution_time * TASK1_PERIOD / first_task.subtasks[i].execution_time;
+		i = i + 1;
+	}
+	int max = 0;
+	int j = 0;
+	int k = 0;
+	int count[4] = {0,0,0,0};
+	//calculate priority
+	for (j = 0; j < first_task.subtask_count; j = j + 1){
+		if(first_task.subtasks[j].core != 4){
+			count[first_task.subtasks[j].core]+=1;
+		}
+		for(k = 0; k < 4; k++){
+			if(max < count[k]){
+				max = count[k];
+			}
+		}
+	}
+	count[0] = 0;
+	count[1] = 0;
+	count[2] = 0;
+	count[3] = 0;
+	struct temp temp_list[4][max];
+	for (j = 0; j < first_task.subtask_count; j = j + 1){
+                if(first_task.subtasks[j].core != 4){
+			struct temp result = {j, first_task.subtasks[i].relative_deadline};
+                     	temp_list[first_task.subtasks[j].core][count[first_task.subtasks[j].core]] = result;
+			count[first_task.subtasks[j].core] += 1;
+                }
+        }
+	for (j = 0; j < 4; j++){
+		int size = sizeof(temp_list[j]) / sizeof(temp_list[j][0]);
+        	sort((void*)temp_list[j], size, sizeof(temp_list[j][0]), &comparator, NULL);
+	}
+	for (j = 0; j < 4; j++){
+		for (k = 0; k < count[j]; k++){
+			first_task.subtasks[temp_list[j][k].index].priority = max-k+1;
+		}
+	}
+	return *temp_list;
+}
+
 
 /*
 {
