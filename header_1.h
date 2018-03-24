@@ -57,7 +57,7 @@ struct subtask {
 	int loop_iterations_count;
 	int cumulative_execution_time;
 	int execution_time;
-	float utilization;
+	int utilization;
 	int core;
 	int relative_deadline;
 	int priority;
@@ -110,7 +110,7 @@ struct task first_task=
 			NUM_ITERS_PER_MS*ONE_1_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
 			ONE_1_EXECUTION_TIME,//execution time
-			ONE_1_EXECUTION_TIME/(float)TASK1_PERIOD,//utilization
+			ONE_1_EXECUTION_TIME * 100 /TASK1_PERIOD,//utilization
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
@@ -125,7 +125,7 @@ struct task first_task=
 			NUM_ITERS_PER_MS*ONE_2_EXECUTION_TIME,//loop iterations count
 			0,//cumulative execution time,calculate later
 			ONE_2_EXECUTION_TIME,//execution time
-			ONE_2_EXECUTION_TIME/(float)TASK1_PERIOD,//utilization
+			ONE_2_EXECUTION_TIME * 100/TASK1_PERIOD,//utilization
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
@@ -203,14 +203,14 @@ void initialize(void) {
 	}
 	// sort in decreasing order
 	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
-	float cpu_load[CPU_COUNT] = {0, 0, 0, 0};
+	int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
 	// assign cpu cores
 	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
 	for (i = 0; i < SUBTASK_COUNT; i++) {
 		cur_subtask = *subtask_list[i];
 		for (j = 0; j < CPU_COUNT; j++) {
 			// assign to the first available one
-			if (cpu_load[j] + cur_subtask.utilization < 1) {
+			if (cpu_load[j] + cur_subtask.utilization < 100) {
 				cur_subtask.core = j;
 				cpu_count[j]++;
 				cpu_load[j] += cur_subtask.utilization;
