@@ -12,6 +12,7 @@
 #include <linux/ktime.h>
 
 #define TASK_COUNT 3
+#define SUBTASK_COUNT 9
 #define SUBTASK_1_COUNT 2
 #define SUBTASK_2_COUNT 3
 #define SUBTASK_3_COUNT 4
@@ -43,6 +44,8 @@
 // "task1_subtask1"
 #define NAME_BUFF 15
 
+#define CPU_COUNT 4
+
 struct subtask {
 	struct hrtimer* timer;
 	struct task_struct* task_struct_pointer;
@@ -65,6 +68,13 @@ struct task {
 	int execution_time;
 	struct subtask subtasks[];
 };
+
+struct core {
+	int subtask_count;
+	struct subtask subtasks[];
+}
+
+extern struct core* core_list[CPU_COUNT];
 
 // Declare and initialize hrtimers
 // First task
@@ -121,8 +131,120 @@ struct task first_task=
 	}
 };
 
+// -1 means left goes first
+// 1 means right goes first
+// 0 means equivalent
+static int utilization_comparator(const void* lhs, const void* rhs) {
+	struct subtask* left = (struct subtask*)(lhs);
+	struct subtask* right = (struct subtask*)(rhs);
+	if (left->utilization > right->utilization) {
+		return -1;
+	}
+	else if (left->utilization < right->utilization) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+// sort in decreasing relative deadline
+// a.k.a. increasing priority
+static int relative_deadline_comparator(const void* lhs, const void* rhs) {
+	struct subtask left = (struct subtask)(lhs);
+	struct subtask right = (struct subtask)(rhs);
+	if (left.relative_deadline > right.relative_deadline) {
+		return -1;
+	}
+	else if (left.relative_deadline < right.relative_deadline) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+
 void initialize(void) {
-	task_set[0] = &first_task;
+	task_set[TASK1_INDEX] = &first_task;
+	//task_set[TASK2_INDEX] = &second_task;
+	//task_set[TASK3_INDEX] = &third_task;
+	int i, j;
+
+	int count;
+	count = 0;
+	int task_execution_time;
+
+	struct task* cur_task;
+	struct subtask* cur_subtask;
+	struct subtask* subtask_list[SUBTASK_COUNT];
+	// build subtask_list and assign relative deadline
+	// TODO: change to TASK_COUNT
+	for (i = 0; i < 1; i++) {
+			task_execution_time = 0;
+			cur_task = task_set[i];
+			for (j = 0; j < cur_task->subtask_count; j++) {
+				cur_subtask = cur_task->subtasks[j];
+				// add to total
+				task_execution_time += cur_subtask->execution_time;
+				cur_subtask.cumulative_execution_time = task_execution_time;
+				subtask_list[count] = cur_subtask;
+			}
+			cur_task->execution_time = task_execution_time;
+			// assign relative deadline
+			for (j = 0; j < cur_task->subtask_count; j++) {
+				cur_subtask = cur_task->subtasks[j];
+				cur_subtask.relative_deadline =
+					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->task_execution_time;
+			}
+	}
+	// sort in decreasing order
+	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
+	float cpu_load[CPU_COUNT] = {0, 0, 0, 0};
+	// assign cpu cores
+	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		cur_subtask = subtask_list[i];
+		for (j = 0; j < CPU_COUNT; j++) {
+			// assign to the first available one
+			if (cpu_load[j] + cur_subtask->utilization < 1) {
+				cur_subtask->core = j;
+				cpu_count[j]++;
+				cpu_load[j] += cur_subtask->utilization;
+			}
+		}
+		// TODO: set default to -1
+		// not schedulable
+		// assign to core 0 for now, which is the same as start with 0
+		if (cur_subtask->core == -1) {
+			cur_subtask->core = 0;
+			cpu_count[0]++;
+		}
+	}
+	// build a struct core for each core
+	// with a list of subtasks
+	for (i = 0; i < CPU_COUNT; i++) {
+		struct core* cur_core = malloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i]);
+		cur_core->subtask_count = cpu_count[i];
+		int count = 0;
+		for (j = 0; j < SUBTASK_COUNT; j++) {
+			if (subtask_list[j]->core == i) {
+				cur_core->subtasks[count] = *subtask_list[j];
+				count++;
+			}
+		}
+		core_list[i] = cur_core;
+	}
+	// assign priority
+	for (i = 0; i < CPU_COUNT; i++) {
+		struct core* cur_core = core_list[i];
+		// sort
+		sort((void *)cur_core->subtasks, cur_core->subtask_count, sizeof(struct subtask), &relative_deadline_comparator, NULL);
+		for (j = 0; j < cur_core->subtask_count; j++) {
+			// increasing priority
+			cur_core->subtasks[j].priority = 3 * j;
+		}
+	}
 }
 
 /*

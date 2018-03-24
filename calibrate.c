@@ -65,7 +65,8 @@ static void run_thread(struct subtask* task) {
 
 		struct task* parent_task = get_parent_task(task);
 		ktime_t period;
-		period = ktime_set(0, parent_task->period);
+		// milisecond to nanosecond
+		period = ktime_set(0, parent_task->period * 1000000);
 		// schedule next wakeup
 		if (task->pos_in_task == 0) {
 			hrtimer_forward(task->timer, task->last_release_time, period);
@@ -96,7 +97,7 @@ int run_init(void) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = cur_mother_task->subtasks[j];
-				cur_subtask.task_struct_pointer = kthread_create(run_thread, &cur_subtask, cur_subtask.name);
+				cur_subtask.task_struct_pointer = kthread_create(run_thread, (void*)&cur_subtask, cur_subtask.name);
 				kthread_bind(cur_subtask.task_struct_pointer, cur_subtask.core);
 				param.sched_priority = cur_subtask.priority;
 				sched_setscheduler(cur_subtask.task_struct_pointer, SCHED_FIFO, &param);
