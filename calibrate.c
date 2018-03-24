@@ -111,6 +111,20 @@ int run_init(void) {
 
 void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
+	int i, j, ret;
+	struct task* cur_mother_task;
+	struct subtask cur_subtask;
+	for (i = 0; i < TASK_COUNT; i++) {
+		cur_mother_task = task_set[i];
+		for (j = 0; j < cur_mother_task->subtask_count; j++) {
+				cur_subtask = cur_mother_task->subtasks[j];
+				hrtimer_cancel(cur_subtask.timer);
+				ret = kthread_stop(cur_subtask.task_struct_pointer);
+				if (ret == 0) {
+					printk(KERN_INFO "Subtask %d stopped", cur_subtask.name);
+				}
+		}
+	}
 }
 
 int calibrate_init(void){
@@ -142,6 +156,8 @@ static void general_exit(void) {
 	else {
 		calibrate_exit();
 	}
+	// TODO: clean up the remaining structures
+
 }
 
 module_init(general_init);
