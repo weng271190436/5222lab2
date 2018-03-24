@@ -122,7 +122,7 @@ void run_exit(void) {
 				hrtimer_cancel(cur_subtask.timer);
 				ret = kthread_stop(cur_subtask.task_struct_pointer);
 				if (ret == 0) {
-					printk(KERN_INFO "Subtask %d stopped", cur_subtask.name);
+					printk(KERN_INFO "Subtask %s stopped", cur_subtask.name);
 				}
 		}
 	}

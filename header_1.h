@@ -179,7 +179,7 @@ void initialize(void) {
 	int task_execution_time;
 
 	struct task* cur_task;
-	struct subtask* cur_subtask;
+	struct subtask cur_subtask;
 	struct subtask* subtask_list[SUBTASK_COUNT];
 	// build subtask_list and assign relative deadline
 	// TODO: change to TASK_COUNT
@@ -189,16 +189,16 @@ void initialize(void) {
 			for (j = 0; j < cur_task->subtask_count; j++) {
 				cur_subtask = cur_task->subtasks[j];
 				// add to total
-				task_execution_time += cur_subtask->execution_time;
-				cur_subtask->cumulative_execution_time = task_execution_time;
+				task_execution_time += cur_subtask.execution_time;
+				cur_subtask.cumulative_execution_time = task_execution_time;
 				subtask_list[count] = cur_subtask;
 			}
 			cur_task->execution_time = task_execution_time;
 			// assign relative deadline
 			for (j = 0; j < cur_task->subtask_count; j++) {
 				cur_subtask = cur_task->subtasks[j];
-				cur_subtask->relative_deadline =
-					cur_subtask->cumulative_execution_time * cur_task->period / cur_task->task_execution_time;
+				cur_subtask.relative_deadline =
+					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->execution_time;
 			}
 	}
 	// sort in decreasing order
@@ -210,17 +210,17 @@ void initialize(void) {
 		cur_subtask = subtask_list[i];
 		for (j = 0; j < CPU_COUNT; j++) {
 			// assign to the first available one
-			if (cpu_load[j] + cur_subtask->utilization < 1) {
-				cur_subtask->core = j;
+			if (cpu_load[j] + cur_subtask.utilization < 1) {
+				cur_subtask.core = j;
 				cpu_count[j]++;
-				cpu_load[j] += cur_subtask->utilization;
+				cpu_load[j] += cur_subtask.utilization;
 			}
 		}
 		// TODO: set default to -1
 		// not schedulable
 		// assign to core 0 for now, which is the same as start with 0
-		if (cur_subtask->core == -1) {
-			cur_subtask->core = 0;
+		if (cur_subtask.core == -1) {
+			cur_subtask.core = 0;
 			cpu_count[0]++;
 		}
 	}
