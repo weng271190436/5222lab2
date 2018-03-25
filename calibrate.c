@@ -10,7 +10,11 @@
 
 #define NUM_OF_CORES 4
 #define MIN_LOOP_ITERATIONS_COUNT 1000
-#define INCREMENTOR 15000
+#define INCREMENTOR 16384
+#define CORE_0 0
+#define CORE_1 1
+#define CORE_2 2
+#define CORE_3 3
 
 static char* mode = "calibrate";
 static char* run_mode = "calibrate";
@@ -18,8 +22,13 @@ struct sched_param param;
 module_param(mode, charp, 0644);
 
 struct task* task_set[TASK_COUNT];
+struct core* core_list[CPU_COUNT];
 
-
+static struct task_struct *calibrate_task0;
+static struct task_struct *calibrate_task1;
+static struct task_struct *calibrate_task2;
+static struct task_struct *calibrate_task3;
+static int calibrate_thread_param;
 
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
@@ -27,6 +36,11 @@ void subtask_work(struct subtask* task) {
 	for (i = 0; i < task->loop_iterations_count; i++) {
 		ktime_get();
 	}
+}
+
+// TODO: parameter: list of subtasks on the same core
+void calibrate_core(void) {
+	// do nothing
 }
 
 // Step 6
@@ -168,10 +182,49 @@ int run_init(void) {
 
 void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
+	int i, j, ret;
+	struct task* cur_mother_task;
+	struct subtask cur_subtask;
+	for (i = 0; i < TASK_COUNT; i++) {
+		cur_mother_task = task_set[i];
+		for (j = 0; j < cur_mother_task->subtask_count; j++) {
+				cur_subtask = cur_mother_task->subtasks[j];
+				hrtimer_cancel(cur_subtask.timer);
+				ret = kthread_stop(cur_subtask.task_struct_pointer);
+				if (ret == 0) {
+					printk(KERN_INFO "Subtask %s stopped", cur_subtask.name);
+				}
+		}
+	}
 }
 
 int calibrate_init(void){
 	printk(KERN_DEBUG "Calibrate inits.\n");
+	calibrate_thread_param=CORE_0;
+	calibrate_task0=kthread_create(calibrate_thread,&calibrate_thread_param,"core0");
+	calibrate_thread_param=CORE_1;
+	calibrate_task1=kthread_create(calibrate_thread,&calibrate_thread_param,"core1");
+	calibrate_thread_param=CORE_2;
+	calibrate_task2=kthread_create(calibrate_thread,&calibrate_thread_param,"core2");
+	calibrate_thread_param=CORE_3;
+	calibrate_task3=kthread_create(calibrate_thread,&calibrate_thread_param,"core3");
+	
+	kthread_bind(calibrate_task0,0);
+	kthread_bind(calibrate_task1,0);
+	kthread_bind(calibrate_task2,0);
+	kthread_bind(calibrate_task3,0);
+	
+	param.sched_priority=0;
+	sched_setscheduler(calibrate_task0,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task1,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task2,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task3,SCHED_FIFO,&param);
+	
+	wake_up_process(calibrate_task0);
+	wake_up_process(calibrate_task1);
+	wake_up_process(calibrate_task2);
+	wake_up_process(calibrate_task3);
+	
 	return 0;
 }
 
