@@ -33,7 +33,7 @@ void subtask_work(struct subtask* task) {
 // thread function for calibrate mode
 // parameter: core number which can be used to find
 // 		all subtasks assigned to this core
-static int calibrate_mode_threadfunc(int core_number) {
+static int calibrate_thread(int core_number) {
 	if (core_number < 0 || core_number > NUM_OF_CORES) return -1;
 	//set_current_state(TASK_INTERRUPTIBLE);
 	//schedule();
