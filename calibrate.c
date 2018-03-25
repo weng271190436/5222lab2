@@ -61,7 +61,7 @@ static int calibrate_thread(int core_number) {
 	// Binary search for the maximum number of loop iterations that can
 	// be run nwithout excedding the subtask's specified execution
 	// time
-	struct subtask * subtasks = subtasks_by_core[core_number];
+	struct subtask * subtasks = core_list[core_number]->subtasks;
 	int num_of_subtasks = (int) sizeof(subtasks)/sizeof(subtasks[0]);
 	int i;
 	for (i=0;i<num_of_subtasks;i++){
@@ -82,8 +82,8 @@ static int calibrate_thread(int core_number) {
 			subtasks[i].loop_iterations_count=next;
 			subtask_work(&subtasks[i]);
 			end_time=ktime_get();
-			actual_execution_time=end_time-start_time;
-			while(actual_exection_time>subtasks[i].execution_time){
+			actual_execution_time=(int)(end_time.tv64-start_time.tv64);
+			while(actual_execution_time>subtasks[i].execution_time){
 				incrementor/=2;
 				if(incrementor==0)break;
 				next=current_count+incrementor;
@@ -91,7 +91,7 @@ static int calibrate_thread(int core_number) {
 				subtasks[i].loop_iterations_count=next;
 				subtask_work(&subtasks[i]);
 				end_time=ktime_get();
-				actual_execution_time=end_time-start_time;
+				actual_execution_time=(int)(end_time.tv64-start_time.tv64);
 			}
 			current_count+=incrementor;
 		}
@@ -107,7 +107,7 @@ struct task * get_parent_task(struct subtask * task) {
 	return container_of(
 			(struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task),
 			struct task,
-			subtasks[0],
+			subtasks[0]
 	);
 }
 
