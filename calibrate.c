@@ -325,9 +325,9 @@ void calibrate_exit(void){
 
 static int general_init(void) {
 	int ret;
-	printk(KERN_DEBUG "Mode is %s, %s%s%s\n", mode, mode, mode+1, mode+2);
+	printk(KERN_DEBUG "Mode is %s\n", mode);
 	initialize();
-	if (mode[0] == 'r' && mode[1] == 'u' && mode[2] == 'n') {
+	if (strncmp(mode, "run", 3) == 0) {
 		ret = run_init();
 	}
 	else {
@@ -337,7 +337,7 @@ static int general_init(void) {
 }
 
 static void general_exit(void) {
-	if (mode[0] == 'r' && mode[1] == 'u' && mode[2] == 'n') {
+	if (strncmp(mode, "run", 3) == 0) {
 		run_exit();
 	}
 	else {
