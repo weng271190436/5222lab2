@@ -30,6 +30,88 @@ static struct task_struct *calibrate_task2;
 static struct task_struct *calibrate_task3;
 static int calibrate_thread_param;
 
+void initialize(void) {
+	task_set[TASK1_INDEX] = &first_task;
+	//task_set[TASK2_INDEX] = &second_task;
+	//task_set[TASK3_INDEX] = &third_task;
+	int i, j;
+
+	int count;
+	count = 0;
+	int task_execution_time;
+
+	struct task* cur_task;
+	struct subtask cur_subtask;
+	struct subtask* subtask_list[SUBTASK_COUNT];
+	// build subtask_list and assign relative deadline
+	// TODO: change to TASK_COUNT
+	for (i = 0; i < 1; i++) {
+			task_execution_time = 0;
+			cur_task = task_set[i];
+			for (j = 0; j < cur_task->subtask_count; j++) {
+				cur_subtask = cur_task->subtasks[j];
+				// add to total
+				task_execution_time += cur_subtask.execution_time;
+				cur_subtask.cumulative_execution_time = task_execution_time;
+				subtask_list[count] = &cur_subtask;
+			}
+			cur_task->execution_time = task_execution_time;
+			// assign relative deadline
+			for (j = 0; j < cur_task->subtask_count; j++) {
+				cur_subtask = cur_task->subtasks[j];
+				cur_subtask.relative_deadline =
+					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->execution_time;
+			}
+	}
+	// sort in decreasing order
+	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
+	int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
+	// assign cpu cores
+	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		cur_subtask = *subtask_list[i];
+		for (j = 0; j < CPU_COUNT; j++) {
+			// assign to the first available one
+			if (cpu_load[j] + cur_subtask.utilization < 100) {
+				cur_subtask.core = j;
+				cpu_count[j]++;
+				cpu_load[j] += cur_subtask.utilization;
+			}
+		}
+		// TODO: set default to -1
+		// not schedulable
+		// assign to core 0 for now, which is the same as start with 0
+		if (cur_subtask.core == -1) {
+			cur_subtask.core = 0;
+			cpu_count[0]++;
+		}
+	}
+	// build a struct core for each core
+	// with a list of subtasks
+	for (i = 0; i < CPU_COUNT; i++) {
+		struct core* cur_core = kmalloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i], GFP_KERNEL);
+		cur_core->subtask_count = cpu_count[i];
+		int count = 0;
+		for (j = 0; j < SUBTASK_COUNT; j++) {
+			if (subtask_list[j]->core == i) {
+				cur_core->subtasks[count] = *subtask_list[j];
+				count++;
+			}
+		}
+		core_list[i] = cur_core;
+	}
+	// assign priority
+	for (i = 0; i < CPU_COUNT; i++) {
+		struct core* cur_core = core_list[i];
+		// sort
+		sort((void *)cur_core->subtasks, cur_core->subtask_count, sizeof(struct subtask), &relative_deadline_comparator, NULL);
+		for (j = 0; j < cur_core->subtask_count; j++) {
+			// increasing priority
+			cur_core->subtasks[j].priority = 3 * j;
+		}
+	}
+}
+
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
 	int i;
@@ -212,23 +294,23 @@ int calibrate_init(void){
 	calibrate_task2=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core2");
 	calibrate_thread_param=CORE_3;
 	calibrate_task3=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core3");
-	
+
 	kthread_bind(calibrate_task0,0);
 	kthread_bind(calibrate_task1,0);
 	kthread_bind(calibrate_task2,0);
 	kthread_bind(calibrate_task3,0);
-	
+
 	param.sched_priority=0;
 	sched_setscheduler(calibrate_task0,SCHED_FIFO,&param);
 	sched_setscheduler(calibrate_task1,SCHED_FIFO,&param);
 	sched_setscheduler(calibrate_task2,SCHED_FIFO,&param);
 	sched_setscheduler(calibrate_task3,SCHED_FIFO,&param);
-	
+
 	wake_up_process(calibrate_task0);
 	wake_up_process(calibrate_task1);
 	wake_up_process(calibrate_task2);
 	wake_up_process(calibrate_task3);
-	
+
 	return 0;
 }
 
