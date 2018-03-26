@@ -178,7 +178,12 @@ static int calibrate_thread(void * data) {
 			}
 			current_count+=incrementor;
 		}
-
+		printk(KERN_DEBUG "Core number is %d, subtask number is %d \n", core_number, i);
+		printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
+		printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
+		printk(KERN_DEBUG "subtask utility is %d \n", subtasks[i].utility);
+		printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[i].loop_iterations_count);
+		printk(KERN_DEBUG "\n");
 	}
 	return 0;
 }
