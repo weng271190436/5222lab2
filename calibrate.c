@@ -17,7 +17,6 @@
 #define CORE_3 3
 
 static char* mode = "calibrate";
-static char* run_mode = "calibrate";
 struct sched_param param;
 module_param(mode, charp, 0644);
 
@@ -322,7 +321,7 @@ static int general_init(void) {
 	int ret;
 	printk(KERN_DEBUG "Mode is %s\n", mode);
 	// initialize();
-	if (strcmp(run_mode, "run")) {
+	if (strcmp(mode, "run")) {
 		ret = run_init();
 	}
 	else {
@@ -332,7 +331,7 @@ static int general_init(void) {
 }
 
 static void general_exit(void) {
-	if (strcmp(run_mode, "run")) {
+	if (strcmp(mode, "run")) {
 		run_exit();
 	}
 	else {
