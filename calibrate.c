@@ -8,17 +8,27 @@
 
 #include "header_1.h"
 
+#define NUM_OF_CORES 4
+#define MIN_LOOP_ITERATIONS_COUNT 1000
+#define INCREMENTOR 16384
+#define CORE_0 0
+#define CORE_1 1
+#define CORE_2 2
+#define CORE_3 3
+
 static char* mode = "calibrate";
-
 static char* run_mode = "calibrate";
-
 struct sched_param param;
-
 module_param(mode, charp, 0644);
 
 struct task* task_set[TASK_COUNT];
-
 struct core* core_list[CPU_COUNT];
+
+static struct task_struct *calibrate_task0;
+static struct task_struct *calibrate_task1;
+static struct task_struct *calibrate_task2;
+static struct task_struct *calibrate_task3;
+static int calibrate_thread_param;
 
 // busy looping in the subtask
 void subtask_work(struct subtask* task) {
@@ -33,12 +43,74 @@ void calibrate_core(void) {
 	// do nothing
 }
 
+// Step 6
+// thread function for calibrate mode
+// parameter: core number which can be used to find
+// 		all subtasks assigned to this core
+static int calibrate_thread(void * data) {
+	int core_number =*((int*) data);
+	if (core_number < 0 || core_number > NUM_OF_CORES) return -1;
+	//set_current_state(TASK_INTERRUPTIBLE);
+	//schedule();
+
+	// After waking up
+	//printk(KERN_DEBUG "Core %d has just woken up.\n", core_number);
+
+	//TODO: sets its priority to the priority specified in its subtask
+	//	struct
+
+	// Binary search for the maximum number of loop iterations that can
+	// be run nwithout excedding the subtask's specified execution
+	// time
+	struct subtask * subtasks = core_list[core_number]->subtasks;
+	int num_of_subtasks = (int) sizeof(subtasks)/sizeof(subtasks[0]);
+	int i;
+	for (i=0;i<num_of_subtasks;i++){
+		param.sched_priority=subtasks[i].priority;
+		sched_setscheduler(current,SCHED_FIFO,&param);
+		//schedule();
+
+		// Calibrate
+		int incrementor=INCREMENTOR;
+		int current_count=MIN_LOOP_ITERATIONS_COUNT;
+		ktime_t start_time;
+		ktime_t end_time;
+		int actual_execution_time;
+		int next;
+		while(incrementor>0){
+			next=current_count+incrementor;
+			start_time=ktime_get();
+			subtasks[i].loop_iterations_count=next;
+			subtask_work(&subtasks[i]);
+			end_time=ktime_get();
+			actual_execution_time=(int)(end_time.tv64-start_time.tv64);
+			while(actual_execution_time>subtasks[i].execution_time){
+				incrementor/=2;
+				if(incrementor==0)break;
+				next=current_count+incrementor;
+				start_time=ktime_get();
+				subtasks[i].loop_iterations_count=next;
+				subtask_work(&subtasks[i]);
+				end_time=ktime_get();
+				actual_execution_time=(int)(end_time.tv64-start_time.tv64);
+			}
+			current_count+=incrementor;
+		}
+
+	}
+	return 0;
+}
+
 struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
 	return container_of(&hr_timer, struct subtask, timer);
 }
 
 struct task * get_parent_task(struct subtask * task) {
-	return container_of((struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task), struct task, subtasks[0]);
+	return container_of(
+			(struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task),
+			struct task,
+			subtasks[0]
+	);
 }
 
 enum hrtimer_restart timer_expire(struct hrtimer* timer) {
@@ -49,8 +121,8 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 	return HRTIMER_RESTART;
 }
 
-
-static void run_thread(struct subtask* task) {
+static int run_thread(void * data) {
+	struct subtask * task = (struct subtask *)data;
 	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	task->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
@@ -67,8 +139,7 @@ static void run_thread(struct subtask* task) {
 
 		struct task* parent_task = get_parent_task(task);
 		ktime_t period;
-		// milisecond to nanosecond
-		period = ktime_set(0, parent_task->period * 1000000);
+		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
 		if (task->pos_in_task == 0) {
 			hrtimer_forward(task->timer, task->last_release_time, period);
@@ -88,18 +159,19 @@ static void run_thread(struct subtask* task) {
 			}
 		}
 	}
+	return 0;
 }
 
 int run_init(void) {
-	printk(KERN_DEBUG "run inits.\n");
 	int i, j;
 	struct task* cur_mother_task;
 	struct subtask cur_subtask;
+	printk(KERN_DEBUG "run inits.\n");
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = cur_mother_task->subtasks[j];
-				cur_subtask.task_struct_pointer = kthread_create(run_thread, (void*)&cur_subtask, cur_subtask.name);
+				cur_subtask.task_struct_pointer = kthread_create(run_thread, (void *)&cur_subtask, cur_subtask.name);
 				kthread_bind(cur_subtask.task_struct_pointer, cur_subtask.core);
 				param.sched_priority = cur_subtask.priority;
 				sched_setscheduler(cur_subtask.task_struct_pointer, SCHED_FIFO, &param);
@@ -132,6 +204,31 @@ void run_exit(void) {
 
 int calibrate_init(void){
 	printk(KERN_DEBUG "Calibrate inits.\n");
+	calibrate_thread_param=CORE_0;
+	calibrate_task0=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core0");
+	calibrate_thread_param=CORE_1;
+	calibrate_task1=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core1");
+	calibrate_thread_param=CORE_2;
+	calibrate_task2=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core2");
+	calibrate_thread_param=CORE_3;
+	calibrate_task3=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core3");
+	
+	kthread_bind(calibrate_task0,0);
+	kthread_bind(calibrate_task1,0);
+	kthread_bind(calibrate_task2,0);
+	kthread_bind(calibrate_task3,0);
+	
+	param.sched_priority=0;
+	sched_setscheduler(calibrate_task0,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task1,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task2,SCHED_FIFO,&param);
+	sched_setscheduler(calibrate_task3,SCHED_FIFO,&param);
+	
+	wake_up_process(calibrate_task0);
+	wake_up_process(calibrate_task1);
+	wake_up_process(calibrate_task2);
+	wake_up_process(calibrate_task3);
+	
 	return 0;
 }
 
@@ -140,9 +237,9 @@ void calibrate_exit(void){
 }
 
 static int general_init(void) {
+	int ret;
 	printk(KERN_DEBUG "Mode is %s\n", mode);
 	// initialize();
-	int ret;
 	if (strcmp(run_mode, "run")) {
 		ret = run_init();
 	}
@@ -159,8 +256,6 @@ static void general_exit(void) {
 	else {
 		calibrate_exit();
 	}
-	// TODO: clean up the remaining structures
-
 }
 
 module_init(general_init);
