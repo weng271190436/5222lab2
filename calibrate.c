@@ -321,7 +321,7 @@ static int general_init(void) {
 	int ret;
 	printk(KERN_DEBUG "Mode is %s\n", mode);
 	// initialize();
-	if (strcmp(mode, "run")) {
+	if (strcmp(mode, "run") == 0) {
 		ret = run_init();
 	}
 	else {
@@ -331,7 +331,7 @@ static int general_init(void) {
 }
 
 static void general_exit(void) {
-	if (strcmp(mode, "run")) {
+	if (strcmp(mode, "run") == 0) {
 		run_exit();
 	}
 	else {
