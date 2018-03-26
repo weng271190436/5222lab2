@@ -65,6 +65,7 @@ static int relative_deadline_comparator(const void* lhs, const void* rhs) {
 }
 
 void initialize(void) {
+	printk(KERN_DEBUG "Assign tasks to task_set\n");
 	task_set[TASK1_INDEX] = &first_task;
 	task_set[TASK2_INDEX] = &second_task;
 	task_set[TASK3_INDEX] = &third_task;
@@ -78,9 +79,11 @@ void initialize(void) {
 	struct subtask cur_subtask;
 	struct subtask* subtask_list[SUBTASK_COUNT];
 	// build subtask_list and assign relative deadline
+	printk(KERN_DEBUG "Start building subtask list\n");
 	for (i = 0; i < TASK_COUNT; i++) {
 			task_execution_time = 0;
 			cur_task = task_set[i];
+			printk(KERN_DEBUG "Working on task %d\n", i);
 			for (j = 0; j < cur_task->subtask_count; j++) {
 				cur_subtask = cur_task->subtasks[j];
 				// add to total
@@ -96,11 +99,15 @@ void initialize(void) {
 					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->execution_time;
 			}
 	}
+	printk(KERN_DEBUG "subtask list built\n");
 	// sort in decreasing order
+	printk(KERN_DEBUG "Sorting based on utilization started\n");
 	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
+	printk(KERN_DEBUG "Sorting based on utilization finished\n");
 	int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
 	// assign cpu cores
 	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
+	printk(KERN_DEBUG "Start assigning CPU to subtask\n");
 	for (i = 0; i < SUBTASK_COUNT; i++) {
 		cur_subtask = *subtask_list[i];
 		for (j = 0; j < CPU_COUNT; j++) {
@@ -121,7 +128,9 @@ void initialize(void) {
 	}
 	// build a struct core for each core
 	// with a list of subtasks
+	printk(KERN_DEBUG "Start building core lists\n");
 	for (i = 0; i < CPU_COUNT; i++) {
+		printk(KERN_DEBUG "Start building %d core list\n", %i);
 		struct core* cur_core = kmalloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i], GFP_KERNEL);
 		cur_core->subtask_count = cpu_count[i];
 		int count = 0;
@@ -134,7 +143,9 @@ void initialize(void) {
 		core_list[i] = cur_core;
 	}
 	// assign priority
+	printk(KERN_DEBUG "Start assigning priority to subtask\n");
 	for (i = 0; i < CPU_COUNT; i++) {
+		printk(KERN_DEBUG "Start building %d core list\n", %i);
 		struct core* cur_core = core_list[i];
 		// sort
 		sort((void *)cur_core->subtasks, cur_core->subtask_count, sizeof(struct subtask), &relative_deadline_comparator, NULL);
