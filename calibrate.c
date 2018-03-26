@@ -302,12 +302,12 @@ static int run_thread(void * data) {
 int run_init(void) {
 	int i, j;
 	struct task* cur_mother_task;
-	struct subtask cur_subtask;
+	struct subtask* cur_subtask;
 	printk(KERN_DEBUG "run inits.\n");
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
-				cur_subtask = cur_mother_task->subtasks[j];
+				cur_subtask = &cur_mother_task->subtasks[j];
 				cur_subtask->task_struct_pointer = kthread_create(run_thread, (void *)&cur_subtask, cur_subtask->name);
 				kthread_bind(cur_subtask->task_struct_pointer, cur_subtask->core);
 				param.sched_priority = cur_subtask->priority;
@@ -325,11 +325,11 @@ void run_exit(void) {
 	printk(KERN_DEBUG "run exits.\n");
 	int i, j, ret;
 	struct task* cur_mother_task;
-	struct subtask cur_subtask;
+	struct subtask* cur_subtask;
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
-				cur_subtask = cur_mother_task->subtasks[j];
+				cur_subtask = &cur_mother_task->subtasks[j];
 				hrtimer_cancel(cur_subtask->timer);
 				ret = kthread_stop(cur_subtask->task_struct_pointer);
 				if (ret == 0) {
