@@ -114,7 +114,8 @@ struct task first_task=
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
-			TASK1_INDEX//task index
+			TASK1_INDEX,//task index
+			0
 		},
 		// Subtask 2
 		{
@@ -129,7 +130,8 @@ struct task first_task=
 			0,//core, calculate later
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
-			TASK1_INDEX//task index
+			TASK1_INDEX,//task index
+			1
 		}
 	}
 };
@@ -154,6 +156,7 @@ struct task second_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK2_INDEX,//task index
+			0
 		},
 		// Subtask 2
 		{
@@ -169,6 +172,7 @@ struct task second_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK2_INDEX,//task index
+			1
 		},
 		// Subtask 3
 		{
@@ -184,6 +188,7 @@ struct task second_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK2_INDEX,//task index
+			2
 		}
 	}
 };
@@ -208,6 +213,7 @@ struct task third_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK3_INDEX,//task index
+			0
 		},
 		// Subtask 2
 		{
@@ -223,6 +229,7 @@ struct task third_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK3_INDEX,//task index
+			1
 		},
 		// Subtask 3
 		{
@@ -238,6 +245,7 @@ struct task third_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK3_INDEX,//task index
+			2
 		},
 		// Subtask 4
 		{
@@ -253,6 +261,7 @@ struct task third_task=
 			0,//relative deadline, calculate later
 			0,//priority, calculate later
 			TASK3_INDEX,//task index
+			3
 		}
 	}
 };
