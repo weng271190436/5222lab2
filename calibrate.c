@@ -76,7 +76,7 @@ void initialize(void) {
 	int task_execution_time;
 
 	struct task* cur_task;
-	struct subtask cur_subtask;
+	struct subtask* cur_subtask;
 	struct subtask* subtask_list[SUBTASK_COUNT];
 	// build subtask_list and assign relative deadline
 	printk(KERN_DEBUG "Start building subtask list\n");
@@ -85,44 +85,50 @@ void initialize(void) {
 			cur_task = task_set[i];
 			printk(KERN_DEBUG "Working on task %d\n", i);
 			for (j = 0; j < cur_task->subtask_count; j++) {
-				cur_subtask = cur_task->subtasks[j];
+				cur_subtask = &cur_task->subtasks[j];
 				// add to total
-				task_execution_time += cur_subtask.execution_time;
-				cur_subtask.cumulative_execution_time = task_execution_time;
-				subtask_list[count] = &cur_subtask;
+				task_execution_time += cur_subtask->execution_time;
+				cur_subtask->cumulative_execution_time = task_execution_time;
+				subtask_list[count] = cur_subtask;
 			}
 			cur_task->execution_time = task_execution_time;
 			// assign relative deadline
 			for (j = 0; j < cur_task->subtask_count; j++) {
-				cur_subtask = cur_task->subtasks[j];
-				cur_subtask.relative_deadline =
-					cur_subtask.cumulative_execution_time * cur_task->period / cur_task->execution_time;
+				cur_subtask = &cur_task->subtasks[j];
+				cur_subtask->relative_deadline =
+					cur_subtask->cumulative_execution_time * cur_task->period / cur_task->execution_time;
 			}
 	}
 	printk(KERN_DEBUG "subtask list built\n");
 	// sort in decreasing order
 	printk(KERN_DEBUG "Sorting based on utilization started\n");
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
+	}
 	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
+	}
 	printk(KERN_DEBUG "Sorting based on utilization finished\n");
 	int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
 	// assign cpu cores
 	int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
 	printk(KERN_DEBUG "Start assigning CPU to subtask\n");
 	for (i = 0; i < SUBTASK_COUNT; i++) {
-		cur_subtask = *subtask_list[i];
+		cur_subtask = subtask_list[i];
 		for (j = 0; j < CPU_COUNT; j++) {
 			// assign to the first available one
-			if (cpu_load[j] + cur_subtask.utilization < 100) {
-				cur_subtask.core = j;
+			if (cpu_load[j] + cur_subtask->utilization < 100) {
+				cur_subtask->core = j;
 				cpu_count[j]++;
-				cpu_load[j] += cur_subtask.utilization;
+				cpu_load[j] += cur_subtask->utilization;
 			}
 		}
 		// TODO: set default to -1
 		// not schedulable
 		// assign to core 0 for now, which is the same as start with 0
-		if (cur_subtask.core == -1) {
-			cur_subtask.core = 0;
+		if (cur_subtask->core == -1) {
+			cur_subtask->core = 0;
 			cpu_count[0]++;
 		}
 	}
@@ -302,10 +308,10 @@ int run_init(void) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = cur_mother_task->subtasks[j];
-				cur_subtask.task_struct_pointer = kthread_create(run_thread, (void *)&cur_subtask, cur_subtask.name);
-				kthread_bind(cur_subtask.task_struct_pointer, cur_subtask.core);
-				param.sched_priority = cur_subtask.priority;
-				sched_setscheduler(cur_subtask.task_struct_pointer, SCHED_FIFO, &param);
+				cur_subtask->task_struct_pointer = kthread_create(run_thread, (void *)&cur_subtask, cur_subtask->name);
+				kthread_bind(cur_subtask->task_struct_pointer, cur_subtask->core);
+				param.sched_priority = cur_subtask->priority;
+				sched_setscheduler(cur_subtask->task_struct_pointer, SCHED_FIFO, &param);
 		}
 	}
 	// waking up the first one;
@@ -324,10 +330,10 @@ void run_exit(void) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = cur_mother_task->subtasks[j];
-				hrtimer_cancel(cur_subtask.timer);
-				ret = kthread_stop(cur_subtask.task_struct_pointer);
+				hrtimer_cancel(cur_subtask->timer);
+				ret = kthread_stop(cur_subtask->task_struct_pointer);
 				if (ret == 0) {
-					printk(KERN_INFO "Subtask %s stopped", cur_subtask.name);
+					printk(KERN_INFO "Subtask %s stopped", cur_subtask->name);
 				}
 		}
 	}
