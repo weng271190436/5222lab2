@@ -17,7 +17,7 @@
 #define CORE_3 3
 
 static char* mode = "calibrate";
-static char* run_mode = "run";
+static char* run_mode = "run\n";
 struct sched_param param;
 module_param(mode, charp, 0644);
 
