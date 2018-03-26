@@ -5,6 +5,7 @@
 #include <linux/hrtimer.h>
 #include <linux/sched.h>
 #include <linux/kthread.h>
+#include <linux/string.h>
 
 #include "header_1.h"
 
