@@ -31,6 +31,39 @@ static struct task_struct *calibrate_task2;
 static struct task_struct *calibrate_task3;
 static int calibrate_thread_param;
 
+// -1 means left goes first
+// 1 means right goes first
+// 0 means equivalent
+static int utilization_comparator(const void* lhs, const void* rhs) {
+	struct subtask* left = *(struct subtask**)(lhs);
+	struct subtask* right = *(struct subtask**)(rhs);
+	if (left->utilization > right->utilization) {
+		return -1;
+	}
+	else if (left->utilization < right->utilization) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+// sort in decreasing relative deadline
+// a.k.a. increasing priority
+static int relative_deadline_comparator(const void* lhs, const void* rhs) {
+	struct subtask left = *(struct subtask*)(lhs);
+	struct subtask right = *(struct subtask*)(rhs);
+	if (left.relative_deadline > right.relative_deadline) {
+		return -1;
+	}
+	else if (left.relative_deadline < right.relative_deadline) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 void initialize(void) {
 	task_set[TASK1_INDEX] = &first_task;
 	task_set[TASK2_INDEX] = &second_task;
