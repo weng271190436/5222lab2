@@ -181,7 +181,7 @@ static int calibrate_thread(void * data) {
 		printk(KERN_DEBUG "Core number is %d, subtask number is %d \n", core_number, i);
 		printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
 		printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
-		printk(KERN_DEBUG "subtask utility is %d \n", subtasks[i].utility);
+		printk(KERN_DEBUG "subtask utilization is %d \n", subtasks[i].utilization);
 		printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[i].loop_iterations_count);
 		printk(KERN_DEBUG "\n");
 	}
@@ -325,7 +325,7 @@ void calibrate_exit(void){
 
 static int general_init(void) {
 	int ret;
-	printk(KERN_DEBUG "Mode is %s, %c%c%c\n", mode, mode[0], mode[1], mode[2]);
+	printk(KERN_DEBUG "Mode is %s, %s%s%s\n", mode, mode, mode+1, mode+2);
 	initialize();
 	if (mode[0] == 'r' && mode[1] == 'u' && mode[2] == 'n') {
 		ret = run_init();
