@@ -31,8 +31,8 @@ static int calibrate_thread_param;
 
 void initialize(void) {
 	task_set[TASK1_INDEX] = &first_task;
-	//task_set[TASK2_INDEX] = &second_task;
-	//task_set[TASK3_INDEX] = &third_task;
+	task_set[TASK2_INDEX] = &second_task;
+	task_set[TASK3_INDEX] = &third_task;
 	int i, j;
 
 	int count;
@@ -43,8 +43,7 @@ void initialize(void) {
 	struct subtask cur_subtask;
 	struct subtask* subtask_list[SUBTASK_COUNT];
 	// build subtask_list and assign relative deadline
-	// TODO: change to TASK_COUNT
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < TASK_COUNT; i++) {
 			task_execution_time = 0;
 			cur_task = task_set[i];
 			for (j = 0; j < cur_task->subtask_count; j++) {
@@ -320,7 +319,7 @@ void calibrate_exit(void){
 static int general_init(void) {
 	int ret;
 	printk(KERN_DEBUG "Mode is %s\n", mode);
-	// initialize();
+	initialize();
 	if (strcmp(mode, "run") == 0) {
 		ret = run_init();
 	}
