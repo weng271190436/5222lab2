@@ -130,7 +130,7 @@ void initialize(void) {
 	// with a list of subtasks
 	printk(KERN_DEBUG "Start building core lists\n");
 	for (i = 0; i < CPU_COUNT; i++) {
-		printk(KERN_DEBUG "Start building %d core list\n", %i);
+		printk(KERN_DEBUG "Start building %d core list\n", i);
 		struct core* cur_core = kmalloc(sizeof(struct core) + sizeof(struct subtask) * cpu_count[i], GFP_KERNEL);
 		cur_core->subtask_count = cpu_count[i];
 		int count = 0;
@@ -145,7 +145,7 @@ void initialize(void) {
 	// assign priority
 	printk(KERN_DEBUG "Start assigning priority to subtask\n");
 	for (i = 0; i < CPU_COUNT; i++) {
-		printk(KERN_DEBUG "Start building %d core list\n", %i);
+		printk(KERN_DEBUG "Start building %d core list\n", i);
 		struct core* cur_core = core_list[i];
 		// sort
 		sort((void *)cur_core->subtasks, cur_core->subtask_count, sizeof(struct subtask), &relative_deadline_comparator, NULL);
