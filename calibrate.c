@@ -321,21 +321,21 @@ static int general_init(void) {
 	int ret;
 	printk(KERN_DEBUG "Mode is %s\n", mode);
 	initialize();
-	if (strcmp(mode, run_mode) == 0) {
-		ret = run_init();
+	if (strcmp(mode, "calibrate") == 0) {
+		ret = calibrate_init();
 	}
 	else {
-		ret = calibrate_init();
+		ret = run_init();
 	}
 	return ret;
 }
 
 static void general_exit(void) {
-	if (strcmp(mode, run_mode) == 0) {
-		run_exit();
+	if (strcmp(mode, "calibrate") == 0) {
+		calibrate_exit();
 	}
 	else {
-		calibrate_exit();
+		run_exit();
 	}
 }
 
