@@ -108,7 +108,7 @@ void initialize(void) {
 		timer_ptr = kmalloc(sizeof(struct hrtimer), GFP_KERNEL);
 		subtask_list[i]->timer = timer_ptr;
 	}
-	
+
 	// sort in decreasing order
 	printk(KERN_DEBUG "Sorting based on utilization started\n");
 	// for (i = 0; i < SUBTASK_COUNT; i++) {
@@ -319,7 +319,7 @@ int run_init(void) {
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
-				printk(KERN_DEBUG "Working on subtask %d\n", cur_subtask->name);
+				printk(KERN_DEBUG "Working on subtask %s\n", cur_subtask->name);
 				cur_subtask = &cur_mother_task->subtasks[j];
 				cur_subtask->task_struct_pointer = kthread_create(run_thread, (void *)cur_subtask, cur_subtask->name);
 				kthread_bind(cur_subtask->task_struct_pointer, cur_subtask->core);
