@@ -176,12 +176,12 @@ void initialize(void) {
 
 // busy looping in the subtask
 void subtask_work(struct subtask* cur_subtask) {
-	printk(KERN_DEBUG "Task %s busy doing work\n", cur_subtask->name);
+	//printk(KERN_DEBUG "Task %s busy doing work\n", cur_subtask->name);
 	int i;
 	for (i = 0; i < cur_subtask->loop_iterations_count; i++) {
 		ktime_get();
 	}
-	printk(KERN_DEBUG "Task %s finished busy doing work\n", cur_subtask->name);
+	//printk(KERN_DEBUG "Task %s finished busy doing work\n", cur_subtask->name);
 }
 
 // TODO: parameter: list of subtasks on the same core
@@ -301,16 +301,16 @@ static int run_thread(void * data) {
 		// schedule next subtask
 		if ((cur_subtask->pos_in_task != parent_task->subtask_count - 1)) {
 			//printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
-			struct subtask next_subtask = parent_task->subtasks[cur_subtask->pos_in_task + 1];
+			struct subtask* next_subtask = &parent_task->subtasks[cur_subtask->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
-			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
+			ktime_t next_wakeup = ktime_add(next_subtask->last_release_time, period);
 			if (ktime_before(cur_time, next_wakeup)) {
 					// schedule
-					hrtimer_forward(next_subtask.timer, next_subtask.last_release_time, period);
+					hrtimer_forward(next_subtask->timer, next_subtask->last_release_time, period);
 			}
 			else {
 					// wake up
-					wake_up_process(next_subtask.task_struct_pointer);
+					wake_up_process(next_subtask->task_struct_pointer);
 			}
 		}
 	}
