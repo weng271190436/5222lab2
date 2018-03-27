@@ -16,6 +16,7 @@
 #define CORE_1 1
 #define CORE_2 2
 #define CORE_3 3
+#define MILLION 1000000
 
 static char* mode = "calibrate";
 static char* run_mode = "run\n";
@@ -29,7 +30,10 @@ static struct task_struct *calibrate_task0;
 static struct task_struct *calibrate_task1;
 static struct task_struct *calibrate_task2;
 static struct task_struct *calibrate_task3;
-static int calibrate_thread_param;
+static int calibrate_thread_param0;
+static int calibrate_thread_param1;
+static int calibrate_thread_param2;
+static int calibrate_thread_param3;
 
 // -1 means left goes first
 // 1 means right goes first
@@ -194,57 +198,69 @@ void calibrate_core(void) {
 // parameter: core number which can be used to find
 // 		all subtasks assigned to this core
 static int calibrate_thread(void * data) {
-	int core_number =*((int*) data);
-	if (core_number < 0 || core_number > NUM_OF_CORES) return -1;
-	//set_current_state(TASK_INTERRUPTIBLE);
-	//schedule();
+        int core_number=*((int*) data);
+        printk(KERN_DEBUG "Core number is %d\n", core_number);
+        if (core_number < 0 || core_number > NUM_OF_CORES) return -1;
+        //set_current_state(TASK_INTERRUPTIBLE);
+        //schedule();
 
-	// After waking up
-	//printk(KERN_DEBUG "Core %d has just woken up.\n", core_number);
+        // After waking up
+        //printk(KERN_DEBUG "Core %d has just woken up.\n", core_number);
 
-	//TODO: sets its priority to the priority specified in its subtask
-	//	struct
+        //TODO: sets its priority to the priority specified in its subtask
+        //      struct
 
-	// Binary search for the maximum number of loop iterations that can
-	// be run nwithout excedding the subtask's specified execution
-	// time
-	struct subtask * subtasks = core_list[core_number]->subtasks;
-	int num_of_subtasks = (int) sizeof(subtasks)/sizeof(subtasks[0]);
-	int i;
-	for (i=0;i<num_of_subtasks;i++){
-		param.sched_priority=subtasks[i].priority;
-		sched_setscheduler(current,SCHED_FIFO,&param);
-		//schedule();
+        // Binary search for the maximum number of loop iterations that can
+        // be run nwithout excedding the subtask's specified execution
+        // time
 
-		// Calibrate
-		int incrementor=INCREMENTOR;
-		int current_count=MIN_LOOP_ITERATIONS_COUNT;
-		ktime_t start_time;
-		ktime_t end_time;
-		int actual_execution_time;
-		int next;
-		while(incrementor>0){
-			next=current_count+incrementor;
-			start_time=ktime_get();
-			subtasks[i].loop_iterations_count=next;
-			subtask_work(&subtasks[i]);
-			end_time=ktime_get();
-			actual_execution_time=(int)(end_time.tv64-start_time.tv64);
-			while(actual_execution_time>subtasks[i].execution_time){
-				incrementor/=2;
-				if(incrementor==0)break;
-				next=current_count+incrementor;
-				start_time=ktime_get();
-				subtasks[i].loop_iterations_count=next;
-				subtask_work(&subtasks[i]);
-				end_time=ktime_get();
-				actual_execution_time=(int)(end_time.tv64-start_time.tv64);
-			}
-			current_count+=incrementor;
-		}
-		printk(KERN_DEBUG "Core number is %d, subtask number is %d \n", core_number, i);
-		printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
-		printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
+        printk(KERN_DEBUG "Core number is with possible range.\n");
+        struct subtask * subtasks = core_list[core_number]->subtasks;
+        int num_of_subtasks = core_list[core_number]->subtask_count;
+        printk(KERN_DEBUG "Number of subtasks is %d.\n\n", num_of_subtasks);
+        int i;
+        for (i=0;i<num_of_subtasks;i++){
+                param.sched_priority=subtasks[i].priority;
+                sched_setscheduler(current,SCHED_FIFO,&param);
+                //schedule();
+
+                // Calibrate
+                int incrementor=INCREMENTOR;
+                int current_count=MIN_LOOP_ITERATIONS_COUNT;
+                ktime_t start_time;
+                ktime_t end_time;
+                int actual_execution_time;
+                int next;
+                while(incrementor>0){
+                        next=current_count+incrementor;
+                        start_time=ktime_get();
+                        subtasks[i].loop_iterations_count=next;
+                        subtask_work(&subtasks[i]);
+                        end_time=ktime_get();
+                        actual_execution_time=(int)(end_time.tv64-start_time.tv64);
+                        printk(KERN_DEBUG "next is %d, incrementor is %d, actual execution time is %d, execution time is %d.\n",
+                                next, incrementor,actual_execution_time,
+                                subtasks[i].execution_time);
+                        while(actual_execution_time>subtasks[i].execution_time*
+                                MILLION){
+                                incrementor/=2;
+                                if(incrementor==0)break;
+                                next=current_count+incrementor;
+                                start_time=ktime_get();
+                                subtasks[i].loop_iterations_count=next;
+                                subtask_work(&subtasks[i]);
+                                end_time=ktime_get();
+                                actual_execution_time=(int)(end_time.tv64-start_time.tv64);
+                                printk(KERN_DEBUG "try next is %d, incrementor is %d, actual execution time is %d, execution time is %d.\n", next,
+                                        incrementor,actual_execution_time,
+                                        subtasks[i].execution_time);
+                        }
+                        current_count+=incrementor;
+                }
+                printk(KERN_DEBUG "\n");
+                printk(KERN_DEBUG "Core number is %d, subtask number is %d \n", core_number, i);
+                printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
+                printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
 		printk(KERN_DEBUG "subtask utilization is %d \n", subtasks[i].utilization);
 		printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[i].loop_iterations_count);
 		printk(KERN_DEBUG "\n");
@@ -360,20 +376,20 @@ void run_exit(void) {
 }
 
 int calibrate_init(void){
-	printk(KERN_DEBUG "Calibrate inits.\n");
-	calibrate_thread_param=CORE_0;
-	calibrate_task0=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core0");
-	calibrate_thread_param=CORE_1;
-	calibrate_task1=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core1");
-	calibrate_thread_param=CORE_2;
-	calibrate_task2=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core2");
-	calibrate_thread_param=CORE_3;
-	calibrate_task3=kthread_create(calibrate_thread,(void *)&calibrate_thread_param,"core3");
-
-	kthread_bind(calibrate_task0,0);
-	kthread_bind(calibrate_task1,0);
-	kthread_bind(calibrate_task2,0);
-	kthread_bind(calibrate_task3,0);
+        printk(KERN_DEBUG "Calibrate inits.\n");
+        calibrate_thread_param0=CORE_0;
+        calibrate_task0=kthread_create(calibrate_thread,(void *)&calibrate_thread_param0,"core0");
+        calibrate_thread_param1=CORE_1;
+        calibrate_task1=kthread_create(calibrate_thread,(void *)&calibrate_thread_param1,"core1");
+        calibrate_thread_param2=CORE_2;
+        calibrate_task2=kthread_create(calibrate_thread,(void *)&calibrate_thread_param2,"core2");
+        calibrate_thread_param3=CORE_3;
+        calibrate_task3=kthread_create(calibrate_thread,(void *)&calibrate_thread_param3,"core3");
+	
+        kthread_bind(calibrate_task0,CORE_0);
+        kthread_bind(calibrate_task1,CORE_1);
+        kthread_bind(calibrate_task2,CORE_2);
+        kthread_bind(calibrate_task3,CORE_3);
 
 	param.sched_priority=0;
 	sched_setscheduler(calibrate_task0,SCHED_FIFO,&param);
