@@ -289,7 +289,7 @@ static int run_thread(void * data) {
 
 		subtask_work(cur_subtask);
 
-		struct task* parent_task = get_parent_task(task);
+		struct task* parent_task = get_parent_task(cur_subtask);
 		ktime_t period;
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
