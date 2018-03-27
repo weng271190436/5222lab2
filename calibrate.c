@@ -346,10 +346,11 @@ void run_exit(void) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
 				cur_subtask = &cur_mother_task->subtasks[j];
+				printk(KERN_INFO "Trying to stop subtask %s\n", cur_subtask->name);
 				hrtimer_cancel(cur_subtask->timer);
 				ret = kthread_stop(cur_subtask->task_struct_pointer);
 				if (ret == 0) {
-					printk(KERN_INFO "Subtask %s stopped", cur_subtask->name);
+					printk(KERN_INFO "Subtask %s stopped\n", cur_subtask->name);
 				}
 		}
 	}
