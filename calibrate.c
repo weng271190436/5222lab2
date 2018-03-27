@@ -278,13 +278,14 @@ static int run_thread(void * data) {
 	cur_subtask->timer->function = &timer_expire;
 	printk(KERN_DEBUG "Running task: %s, with position %d\n", cur_subtask->name, cur_subtask->pos_in_task);
 	while (!kthread_should_stop()) {
+		printk(KERN_DEBUG "Begin work for task %s\n", cur_subtask->name);
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
-
+		printk(KERN_DEBUG "Resume work for task %s\n", cur_subtask->name);
 		if (kthread_should_stop()) {
 			break;
 		}
-
+		printk(KERN_DEBUG "Continue work for task %s\n", cur_subtask->name);
 		cur_subtask->last_release_time = ktime_get();
 
 		subtask_work(cur_subtask);
