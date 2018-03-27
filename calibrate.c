@@ -271,7 +271,7 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 
 static int run_thread(void * data) {
 	struct subtask * task = (struct subtask *)data;
-	printk(KERN_DEBUG, "Running task: %s\n", task->name);
+	printk(KERN_DEBUG "Running task: %s\n", task->name);
 	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	task->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
@@ -319,8 +319,8 @@ int run_init(void) {
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
-				printk(KERN_DEBUG "Working on subtask %s\n", cur_subtask->name);
 				cur_subtask = &cur_mother_task->subtasks[j];
+				printk(KERN_DEBUG "Working on subtask %s\n", cur_subtask->name);
 				cur_subtask->task_struct_pointer = kthread_create(run_thread, (void *)cur_subtask, cur_subtask->name);
 				kthread_bind(cur_subtask->task_struct_pointer, cur_subtask->core);
 				param.sched_priority = cur_subtask->priority;
