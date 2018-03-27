@@ -101,16 +101,24 @@ void initialize(void) {
 			}
 	}
 	printk(KERN_DEBUG "subtask list built\n");
+
+	// initialize hr_timer for each subtask
+	void * timer_ptr;
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		timer_ptr = kmalloc(sizeof(struct hrtimer), GFP_KERNEL);
+		subtask_list[i]->timer = timer_ptr;
+	}
+	
 	// sort in decreasing order
 	printk(KERN_DEBUG "Sorting based on utilization started\n");
-	for (i = 0; i < SUBTASK_COUNT; i++) {
-		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
-	}
+	// for (i = 0; i < SUBTASK_COUNT; i++) {
+	// 	printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
+	// }
 
 	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
-	for (i = 0; i < SUBTASK_COUNT; i++) {
-		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
-	}
+	// for (i = 0; i < SUBTASK_COUNT; i++) {
+	// 	printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
+	// }
 	printk(KERN_DEBUG "Sorting based on utilization finished\n");
 	int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
 	// assign cpu cores
@@ -134,6 +142,7 @@ void initialize(void) {
 			cpu_count[0]++;
 		}
 	}
+
 	// build a struct core for each core
 	// with a list of subtasks
 	printk(KERN_DEBUG "Start building core lists\n");
@@ -310,6 +319,7 @@ int run_init(void) {
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
+				printk(KERN_DEBUG "Working on subtask %d\n", cur_subtask->name);
 				cur_subtask = &cur_mother_task->subtasks[j];
 				cur_subtask->task_struct_pointer = kthread_create(run_thread, (void *)cur_subtask, cur_subtask->name);
 				kthread_bind(cur_subtask->task_struct_pointer, cur_subtask->core);
