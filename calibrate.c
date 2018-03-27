@@ -297,7 +297,6 @@ static int run_thread(void * data) {
 		//printk(KERN_DEBUG "Begin work for task %s\n", cur_subtask->name);
 		set_current_state(TASK_INTERRUPTIBLE);
 		// schedule();
-		//printk(KERN_DEBUG "Resume work for task %s\n", cur_subtask->name);
 		if (kthread_should_stop()) {
 			break;
 		}
@@ -306,17 +305,19 @@ static int run_thread(void * data) {
 
 		subtask_work(cur_subtask);
 
+		printk(KERN_DEBUG "return from work for task %s\n", cur_subtask->name);
 		struct task* parent_task = get_parent_task(cur_subtask);
 		ktime_t period;
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
+		printk(KERN_DEBUG "Scheduling logic %s\n", cur_subtask->name);
 		if (cur_subtask->pos_in_task == 0) {
 			//printk(KERN_DEBUG "Task %s is first, scheduling next\n", cur_subtask->name);
 			hrtimer_forward(cur_subtask->timer, cur_subtask->last_release_time, period);
 		}
 		// schedule next subtask
 		if ((cur_subtask->pos_in_task != parent_task->subtask_count - 1)) {
-			//printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
+			printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
 			struct subtask* next_subtask = &parent_task->subtasks[cur_subtask->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask->last_release_time, period);
@@ -385,7 +386,7 @@ int calibrate_init(void){
         calibrate_task2=kthread_create(calibrate_thread,(void *)&calibrate_thread_param2,"core2");
         calibrate_thread_param3=CORE_3;
         calibrate_task3=kthread_create(calibrate_thread,(void *)&calibrate_thread_param3,"core3");
-	
+
         kthread_bind(calibrate_task0,CORE_0);
         kthread_bind(calibrate_task1,CORE_1);
         kthread_bind(calibrate_task2,CORE_2);
