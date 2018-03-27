@@ -52,6 +52,7 @@
 struct subtask {
 	struct hrtimer* timer;
 	struct task_struct* task_struct_pointer;
+	void* parent_task;
 	char name[NAME_BUFF];
 	ktime_t last_release_time;
 	int loop_iterations_count;
@@ -105,6 +106,7 @@ struct task first_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task1_subtask1", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_1_EXECUTION_TIME,//loop iterations count
@@ -121,6 +123,7 @@ struct task first_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task1_subtask2", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*ONE_2_EXECUTION_TIME,//loop iterations count
@@ -146,6 +149,7 @@ struct task second_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task2_subtask1", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*TWO_1_EXECUTION_TIME,//loop iterations count
@@ -162,6 +166,7 @@ struct task second_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task2_subtask2", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*TWO_2_EXECUTION_TIME,//loop iterations count
@@ -178,6 +183,7 @@ struct task second_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task2_subtask3", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*TWO_3_EXECUTION_TIME,//loop iterations count
@@ -203,6 +209,7 @@ struct task third_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task3_subtask1", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*THREE_1_EXECUTION_TIME,//loop iterations count
@@ -219,6 +226,7 @@ struct task third_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task3_subtask2", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*THREE_2_EXECUTION_TIME,//loop iterations count
@@ -235,6 +243,7 @@ struct task third_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task3_subtask3", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*THREE_3_EXECUTION_TIME,//loop iterations count
@@ -251,6 +260,7 @@ struct task third_task=
 		{
 			NULL,//hrtimer
 			NULL,//task_struct pointer
+			NULL,
 			"task3_subtask4", // name
 			(int)0,//last release time,assign in runtime
 			NUM_ITERS_PER_MS*THREE_4_EXECUTION_TIME,//loop iterations count

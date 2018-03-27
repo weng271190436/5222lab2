@@ -90,6 +90,7 @@ void initialize(void) {
 			printk(KERN_DEBUG "Working on task %d\n", i);
 			for (j = 0; j < cur_task->subtask_count; j++) {
 				cur_subtask = &cur_task->subtasks[j];
+				cur_subtask->parent_task = cur_task;
 				// add to total
 				task_execution_time += cur_subtask->execution_time;
 				cur_subtask->cumulative_execution_time = task_execution_time;
@@ -306,7 +307,7 @@ static int run_thread(void * data) {
 		subtask_work(cur_subtask);
 
 		printk(KERN_DEBUG "return from work for task %s\n", cur_subtask->name);
-		struct task* parent_task = get_parent_task(cur_subtask);
+		struct task* parent_task = cur_subtask->parent_task;
 		ktime_t period;
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
