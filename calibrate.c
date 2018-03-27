@@ -274,9 +274,9 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 
 static int run_thread(void * data) {
 	struct subtask * cur_subtask = (struct subtask *)data;
-	printk(KERN_DEBUG "Running task: %s, with position %d\n", cur_subtask->name, cur_subtask->pos_in_task);
 	hrtimer_init(cur_subtask->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	cur_subtask->timer->function = &timer_expire;
+	printk(KERN_DEBUG "Running task: %s, with position %d\n", cur_subtask->name, cur_subtask->pos_in_task);
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
@@ -299,7 +299,7 @@ static int run_thread(void * data) {
 		}
 		// schedule next subtask
 		if ((cur_subtask->pos_in_task != parent_task->subtask_count - 1)) {
-			printk(KERN_DEBUG "Task %s not last, schedule next subtask", cur_subtask->name);
+			printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
 			struct subtask next_subtask = parent_task->subtasks[cur_subtask->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
