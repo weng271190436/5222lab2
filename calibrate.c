@@ -175,11 +175,13 @@ void initialize(void) {
 }
 
 // busy looping in the subtask
-void subtask_work(struct subtask* task) {
+void subtask_work(struct subtask* cur_subtask) {
+	printk(KERN_DEBUG "Task %s busy doing work\n", cur_subtask->name);
 	int i;
-	for (i = 0; i < task->loop_iterations_count; i++) {
+	for (i = 0; i < cur_subtask->loop_iterations_count; i++) {
 		ktime_get();
 	}
+	printk(KERN_DEBUG "Task %s finished busy doing work\n", cur_subtask->name);
 }
 
 // TODO: parameter: list of subtasks on the same core
@@ -254,27 +256,27 @@ struct subtask * subtask_lookup(struct hrtimer* hr_timer) {
 	return container_of(&hr_timer, struct subtask, timer);
 }
 
-struct task * get_parent_task(struct subtask * task) {
+struct task * get_parent_task(struct subtask * cur_subtask) {
 	return container_of(
-			(struct subtask *)(task - sizeof(struct subtask) * task->pos_in_task),
+			(struct subtask *)(cur_subtask - sizeof(struct subtask) * cur_subtask->pos_in_task),
 			struct task,
 			subtasks[0]
 	);
 }
 
 enum hrtimer_restart timer_expire(struct hrtimer* timer) {
-	struct subtask * task = subtask_lookup(timer);
-	if (task->task_struct_pointer != NULL) {
-		wake_up_process(task->task_struct_pointer);
+	struct subtask * cur_subtask = subtask_lookup(timer);
+	if (cur_subtask->task_struct_pointer != NULL) {
+		wake_up_process(cur_subtask->task_struct_pointer);
 	}
 	return HRTIMER_RESTART;
 }
 
 static int run_thread(void * data) {
-	struct subtask * task = (struct subtask *)data;
-	printk(KERN_DEBUG "Running task: %s, with position %d\n", task->name, task->pos_in_task);
-	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
-	task->timer->function = &timer_expire;
+	struct subtask * cur_subtask = (struct subtask *)data;
+	printk(KERN_DEBUG "Running task: %s, with position %d\n", cur_subtask->name, cur_subtask->pos_in_task);
+	hrtimer_init(cur_subtask->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
+	cur_subtask->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
 		set_current_state(TASK_INTERRUPTIBLE);
 		schedule();
@@ -283,22 +285,22 @@ static int run_thread(void * data) {
 			break;
 		}
 
-		task->last_release_time = ktime_get();
+		cur_subtask->last_release_time = ktime_get();
 
-		subtask_work(task);
+		subtask_work(cur_subtask);
 
 		struct task* parent_task = get_parent_task(task);
 		ktime_t period;
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
-		if (task->pos_in_task == 0) {
+		if (cur_subtask->pos_in_task == 0) {
 			printk(KERN_DEBUG "Task %s is first, scheduling next\n", task->name);
-			hrtimer_forward(task->timer, task->last_release_time, period);
+			hrtimer_forward(cur_subtask->timer, cur_subtask->last_release_time, period);
 		}
 		// schedule next subtask
-		if ((task->pos_in_task != parent_task->subtask_count - 1)) {
-			printk(KERN_DEBUG "Task %s not last, schedule next subtask", task->name);
-			struct subtask next_subtask = parent_task->subtasks[task->pos_in_task + 1];
+		if ((cur_subtask->pos_in_task != parent_task->subtask_count - 1)) {
+			printk(KERN_DEBUG "Task %s not last, schedule next subtask", cur_subtask->name);
+			struct subtask next_subtask = parent_task->subtasks[cur_subtask->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
 			if (ktime_before(cur_time, next_wakeup)) {
