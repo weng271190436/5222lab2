@@ -280,7 +280,7 @@ static int run_thread(void * data) {
 	while (!kthread_should_stop()) {
 		printk(KERN_DEBUG "Begin work for task %s\n", cur_subtask->name);
 		set_current_state(TASK_INTERRUPTIBLE);
-		schedule();
+		// schedule();
 		printk(KERN_DEBUG "Resume work for task %s\n", cur_subtask->name);
 		if (kthread_should_stop()) {
 			break;
