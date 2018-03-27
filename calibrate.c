@@ -306,12 +306,12 @@ static int run_thread(void * data) {
 
 		subtask_work(cur_subtask);
 
-		printk(KERN_DEBUG "return from work for task %s\n", cur_subtask->name);
+		//printk(KERN_DEBUG "return from work for task %s\n", cur_subtask->name);
 		struct task* parent_task = cur_subtask->parent_task;
 		ktime_t period;
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
-		printk(KERN_DEBUG "Scheduling logic %s\n", cur_subtask->name);
+		//printk(KERN_DEBUG "Scheduling logic %s\n", cur_subtask->name);
 
 		// if (cur_subtask->pos_in_task == 0) {
 		// 	//printk(KERN_DEBUG "Task %s is first, scheduling next\n", cur_subtask->name);
@@ -320,7 +320,7 @@ static int run_thread(void * data) {
 
 		// schedule next subtask
 		if ((cur_subtask->pos_in_task != parent_task->subtask_count - 1)) {
-			printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
+			//printk(KERN_DEBUG "Task %s not last, schedule next subtask\n", cur_subtask->name);
 			struct subtask* next_subtask = &parent_task->subtasks[cur_subtask->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask->last_release_time, period);
