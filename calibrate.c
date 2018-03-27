@@ -101,7 +101,7 @@ void initialize(void) {
 			}
 	}
 	printk(KERN_DEBUG "subtask list built\n");
-	sort in decreasing order
+	// sort in decreasing order
 	printk(KERN_DEBUG "Sorting based on utilization started\n");
 	for (i = 0; i < SUBTASK_COUNT; i++) {
 		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
