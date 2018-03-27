@@ -294,7 +294,7 @@ static int run_thread(void * data) {
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
 		if (cur_subtask->pos_in_task == 0) {
-			printk(KERN_DEBUG "Task %s is first, scheduling next\n", task->name);
+			printk(KERN_DEBUG "Task %s is first, scheduling next\n", cur_subtask->name);
 			hrtimer_forward(cur_subtask->timer, cur_subtask->last_release_time, period);
 		}
 		// schedule next subtask
