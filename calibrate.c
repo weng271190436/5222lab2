@@ -132,6 +132,7 @@ void initialize(void) {
 				cur_subtask->core = j;
 				cpu_count[j]++;
 				cpu_load[j] += cur_subtask->utilization;
+				break;
 			}
 		}
 		// TODO: set default to -1
@@ -271,7 +272,7 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 
 static int run_thread(void * data) {
 	struct subtask * task = (struct subtask *)data;
-	printk(KERN_DEBUG "Running task: %s\n", task->name);
+	printk(KERN_DEBUG "Running task: %s, with position %d\n", task->name, task->pos_in_task);
 	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	task->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
@@ -291,10 +292,12 @@ static int run_thread(void * data) {
 		period = ktime_set(0, parent_task->period);
 		// schedule next wakeup
 		if (task->pos_in_task == 0) {
+			printk(KERN_DEBUG "Task %s is first, scheduling next\n", task->name);
 			hrtimer_forward(task->timer, task->last_release_time, period);
 		}
 		// schedule next subtask
-		else if ((task->pos_in_task != parent_task->subtask_count - 1)) {
+		if ((task->pos_in_task != parent_task->subtask_count - 1)) {
+			printk(KERN_DEBUG "Task %s not last, schedule next subtask", task->name);
 			struct subtask next_subtask = parent_task->subtasks[task->pos_in_task + 1];
 			ktime_t cur_time = ktime_get();
 			ktime_t next_wakeup = ktime_add(next_subtask.last_release_time, period);
