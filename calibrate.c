@@ -107,11 +107,11 @@ void initialize(void) {
 		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
 	}
 
-	// sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
-	// for (i = 0; i < SUBTASK_COUNT; i++) {
-	// 	printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
-	// }
-	// printk(KERN_DEBUG "Sorting based on utilization finished\n");
+	sort((void*)subtask_list, SUBTASK_COUNT, sizeof(struct subtask*), &utilization_comparator, NULL);
+	for (i = 0; i < SUBTASK_COUNT; i++) {
+		printk(KERN_DEBUG "Subtask %d: name: %s, utilization %d\n", i, subtask_list[i]->name, subtask_list[i]->utilization);
+	}
+	printk(KERN_DEBUG "Sorting based on utilization finished\n");
 	// int cpu_load[CPU_COUNT] = {0, 0, 0, 0};
 	// // assign cpu cores
 	// int cpu_count[CPU_COUNT] = {0, 0, 0, 0};
