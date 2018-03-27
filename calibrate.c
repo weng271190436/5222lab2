@@ -262,6 +262,7 @@ enum hrtimer_restart timer_expire(struct hrtimer* timer) {
 
 static int run_thread(void * data) {
 	struct subtask * task = (struct subtask *)data;
+	printk(KERN_DEBUG, "Running task: %s", task->name);
 	hrtimer_init(task->timer, CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
 	task->timer->function = &timer_expire;
 	while (!kthread_should_stop()) {
