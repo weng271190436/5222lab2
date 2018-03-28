@@ -410,7 +410,43 @@ int calibrate_init(void){
 }
 
 void calibrate_exit(void){
-	printk(KERN_DEBUG "Calibrate exits.\n");
+	int i, j;
+	struct task* cur_mother_task;
+	struct subtask* cur_subtask;
+	struct subtask * subtasks;
+	printk(KERN_DEBUG "Calibrate exits.\n\n");
+
+	// Print calibration results
+	printk(KERN_DEBUG "Begin calibration results.\n\n");
+	for (i = 0; i < NUM_OF_CORES; i++){
+		subtasks = core_list[i]->subtasks
+		for (j = 0; j < core_list[i]->subtask_count; j++){
+			printk(KERN_DEBUG "\n");
+			printk(KERN_DEBUG "Core number is %d, index in core_list is %d \n", i, j);
+			printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
+			printk(KERN_DEBUG "position_in_task is %d \n", subtasks[i].pos_in_task);
+			printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
+			printk(KERN_DEBUG "subtask utilization is %d \n", subtasks[i].utilization);
+			printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[i].loop_iterations_count);
+			printk(KERN_DEBUG "\n");
+		}
+	}
+	
+	// Free hr_timers
+	for (i = 0; i < TASK_COUNT; i++) {
+		cur_mother_task = task_set[i];
+		for (j = 0; j < cur_mother_task->subtask_count; j++) {
+				cur_subtask = &cur_mother_task->subtasks[j];
+				printk(KERN_INFO "Trying to free subtask %s's timer\n", cur_subtask->name);
+				kfree(cur_subtask->timer);
+				printk(KERN_INFO "Subtask %s's timer freed\n", cur_subtask->name);
+		}
+	}
+	// Free core_list
+	kfree(core_list[CORE_0]);
+	kfree(core_list[CORE_1]);
+	kfree(core_list[CORE_2]);
+	kfree(core_list[CORE_3]);
 }
 
 static int general_init(void) {
