@@ -419,7 +419,7 @@ void calibrate_exit(void){
 	// Print calibration results
 	printk(KERN_DEBUG "Begin calibration results.\n\n");
 	for (i = 0; i < NUM_OF_CORES; i++){
-		subtasks = core_list[i]->subtasks
+		subtasks = core_list[i]->subtasks;
 		for (j = 0; j < core_list[i]->subtask_count; j++){
 			printk(KERN_DEBUG "\n");
 			printk(KERN_DEBUG "Core number is %d, index in core_list is %d \n", i, j);
