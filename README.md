@@ -41,3 +41,9 @@ Most of the remaining code are relatively straightforward and are mostly followi
 
 ## Problems
 We decided to use zero length array in both the struct task and struct core_list to be able to deal with variable length of subtasks. The get_parent_task function was not calculating the correct mother task that holds the list of subtasks because, I guess, the struct is not aligned correctly. What is the default memory layout for a zero length array? I thought that array is a continuous piece of memory where each item is stored directly next to each other.
+
+## Build instructions
+module add raspberry
+KERNEL=kernel7
+LINUX_SOURCE=./../linux
+make -C $LINUX_SOURCE ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- SUBDIRS=$PWD modules
