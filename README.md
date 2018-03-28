@@ -42,6 +42,13 @@ Most of the remaining code are relatively straightforward and are mostly followi
 ## Problems
 We decided to use zero length array in both the struct task and struct core_list to be able to deal with variable length of subtasks. The get_parent_task function was not calculating the correct mother task that holds the list of subtasks because, I guess, the struct is not aligned correctly. What is the default memory layout for a zero length array? I thought that array is a continuous piece of memory where each item is stored directly next to each other.
 
+## Test and evaluation
+a. Use header_1.h to calibrate and then run. No deadlines are missed because each core is under-utilized.
+
+b. Use header_2.h to calibrate and then run. Each second subtask in each task never gets to complete because they are preempted by the first subtask. Each first subtask in each task misses its deadline.
+
+c. Try mis-configuring header_1.h and deadlines are met.
+
 ## Build instructions
 module add raspberry
 
