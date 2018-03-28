@@ -431,8 +431,15 @@ void calibrate_exit(void){
 			printk(KERN_DEBUG "\n");
 		}
 	}
-	
+
 	// Free hr_timers
+
+}
+
+void cleanup() {
+	int i, j;
+	struct task* cur_mother_task;
+	struct subtask* cur_subtask;
 	for (i = 0; i < TASK_COUNT; i++) {
 		cur_mother_task = task_set[i];
 		for (j = 0; j < cur_mother_task->subtask_count; j++) {
@@ -469,6 +476,7 @@ static void general_exit(void) {
 	else {
 		calibrate_exit();
 	}
+	cleanup();
 }
 
 module_init(general_init);
