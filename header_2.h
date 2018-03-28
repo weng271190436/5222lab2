@@ -109,7 +109,7 @@ struct task first_task=
             0,//cumulative execution time,calculate later
             ONE_1_EXECUTION_TIME,//execution time
             ONE_1_EXECUTION_TIME * 100 /TASK1_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK1_INDEX,//task index
@@ -126,7 +126,7 @@ struct task first_task=
             0,//cumulative execution time,calculate later
             ONE_2_EXECUTION_TIME,//execution time
             ONE_2_EXECUTION_TIME * 100/TASK1_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK1_INDEX,//task index
@@ -152,7 +152,7 @@ struct task second_task=
             0,//cumulative execution time,calculate later
             TWO_1_EXECUTION_TIME,//execution time
             TWO_1_EXECUTION_TIME*100/TASK2_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK2_INDEX,//task index
@@ -169,7 +169,7 @@ struct task second_task=
             0,//cumulative execution time,calculate later
             TWO_2_EXECUTION_TIME,//execution time
             TWO_2_EXECUTION_TIME*100/TASK2_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK2_INDEX,//task index
@@ -195,7 +195,7 @@ struct task third_task=
             0,//cumulative execution time,calculate later
             THREE_1_EXECUTION_TIME,//execution time
             THREE_1_EXECUTION_TIME*100/TASK3_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK3_INDEX,//task index
@@ -212,7 +212,7 @@ struct task third_task=
             0,//cumulative execution time,calculate later
             THREE_2_EXECUTION_TIME,//execution time
             THREE_2_EXECUTION_TIME*100/TASK3_PERIOD,//utilization
-            0,//core, calculate later
+            -1,//core, calculate later
             0,//relative deadline, calculate later
             0,//priority, calculate later
             TASK3_INDEX,//task index
