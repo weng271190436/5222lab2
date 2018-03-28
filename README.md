@@ -44,6 +44,9 @@ We decided to use zero length array in both the struct task and struct core_list
 
 ## Build instructions
 module add raspberry
+
 KERNEL=kernel7
-LINUX_SOURCE=./../linux
+
+LINUX_SOURCE=./../linux (assuming that calibrate.c and header files are in a directory that is in the same directory as "linux" directory)
+
 make -C $LINUX_SOURCE ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- SUBDIRS=$PWD modules
