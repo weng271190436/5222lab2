@@ -438,7 +438,7 @@ void calibrate_exit(void){
 
 }
 
-void cleanup() {
+void cleanup(void) {
 	int i, j;
 	struct task* cur_mother_task;
 	struct subtask* cur_subtask;
