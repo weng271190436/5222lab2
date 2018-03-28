@@ -330,6 +330,8 @@ static int run_thread(void * data) {
 			}
 			else {
 					// wake up
+					// this means that we missed the deadline
+					printk(KERN_DEBUG "Subtask %s missed its deadline, waking up next task.\n", cur_subtask->name);
 					wake_up_process(next_subtask->task_struct_pointer);
 			}
 		}

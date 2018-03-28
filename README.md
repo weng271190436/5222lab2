@@ -5,10 +5,14 @@
 
 
 # Lab design:
+
+## Layout of the data structure
+As in step 4, the struct subtask contains everything the kernel module needs to know about this subtask, including task_struct pointer, hrtimer pointer, mother task pointer etc. All the rest of the fields, such as utilization, execution time are all in integer because it seems like it's unsafe to use float in kernel space. With the struct, we can pass the subtask struct itself to the thread functions without the need to design additional structures that stores the attributes.
+
 ## Static vs. Dynamic initialization
 The lab instruction recommends using static initialization for all the task and subtask structs in the header file, and then
 use those directly with careful indexing in the kernel module. When writing the lab, we felt rather restricted by the purely static approach. Certain fields in the subtask structs could be better calculated dynamically. For example, the calibrate.c
-should be able to take in a list of task of arbitrary size, and perform the action accordingly.
+should be able to take in a list of task of arbitrary size, and perform the action accordingly. We initially wanted to declare all the lists of tasks and subtasks in the header file, and use extern keyword to make it visible to the kernel module. This approach led to some unknown symbol problem that we weren't able to fix. Instead, we moved every such structure and initialize and cleanup function to the main calibrate.c function, which also increased readability of the code.
 
 ## Initialize function
 The key in initialization is creating two lists. The first list is the list of tasks that holds the subtasks. The second list is
