@@ -423,11 +423,11 @@ void calibrate_exit(void){
 		for (j = 0; j < core_list[i]->subtask_count; j++){
 			printk(KERN_DEBUG "\n");
 			printk(KERN_DEBUG "Core number is %d, index in core_list is %d \n", i, j);
-			printk(KERN_DEBUG "Task number is %d \n", subtasks[i].task_index);
-			printk(KERN_DEBUG "position_in_task is %d \n", subtasks[i].pos_in_task);
-			printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[i].execution_time);
-			printk(KERN_DEBUG "subtask utilization is %d \n", subtasks[i].utilization);
-			printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[i].loop_iterations_count);
+			printk(KERN_DEBUG "Task number is %d \n", subtasks[j].task_index);
+			printk(KERN_DEBUG "position_in_task is %d \n", subtasks[j].pos_in_task);
+			printk(KERN_DEBUG "subtask execution time is %d \n", subtasks[j].execution_time);
+			printk(KERN_DEBUG "subtask utilization is %d \n", subtasks[j].utilization);
+			printk(KERN_DEBUG "Loop iterations count is %d\n", subtasks[j].loop_iterations_count);
 			printk(KERN_DEBUG "\n");
 		}
 	}
